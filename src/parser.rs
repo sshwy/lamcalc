@@ -45,7 +45,24 @@ fn build_lambda(tt: Pair<Rule>) -> Result<Exp<String>, Error> {
     }
 }
 
-/// 解析一个 lambda 表达式
+/**
+解析一个 lambda 表达式.
+
+使用方法见主页。
+
+使用 PEG 描述的语法规则如下（`~`表示拼接，`+` 表示一次或更多，`?` 表示 0 次或一次，`|` 表示选择）：
+
+```peg
+blank       = { " "+ }
+ident       = { ('a'..'z')+ }
+exp         = { app | bounded_exp | abs }
+bounded_exp = { ident | "(" ~ abs ~ ")" | "(" ~ app ~ ")" }
+tail_exp    = { bounded_exp | abs }
+abs         = { "\\" ~ ident ~ blank? ~ "." ~ blank? ~ exp }
+app         = { (bounded_exp ~ blank)+ ~ tail_exp }
+main        = { SOI ~ blank? ~ exp ~ blank? ~ EOI }
+```
+*/
 pub fn parse(lambda: &str) -> Result<Exp<String>, Error> {
     match &mut LambdaParser::parse(Rule::main, lambda) {
         Ok(rules) => {

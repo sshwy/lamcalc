@@ -1,4 +1,6 @@
 #[derive(Debug)]
+
+/// 处理 lambda 表达式过程中产生的错误
 pub enum Error {
     /// 化简次数超过了规定（有可能无限递归）
     SimplifyLimitExceeded,
