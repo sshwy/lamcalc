@@ -1,61 +1,26 @@
 #![warn(missing_docs)]
-/*!
-l_calc 实现了无类型 lambda 演算.
-
-提供 [`lambda`](crate::lambda) 来快速创建 lambda 表达式，
-提供 [`parse`] 来解析 lambda 表达式
-
-# Quick View
-
-```rust
-use l_calc::{lambda, Error, parse};
-
-fn main () -> Result<(), Error> {
-    // Church encoding
-    let zero = lambda!(s. (z. z)); // 使用 lambda marco 快速创建 lambda 表达式
-    let suc = lambda!(n. s. z. s (n s z));
-    let mut plus = lambda!(n. m. n {suc} m); // 使用 {identifier} 来引用之前定义的 lambda
-    plus.simplify()?;
-    let mut nats = vec![zero.clone()];
-    for i in 1..10 {
-        let x = nats.last().unwrap();
-        let mut sx = lambda!({suc} {x});
-        sx.simplify()?;
-        eprintln!("{} = {:-}", i, sx);
-        nats.push(sx);
-    }
-    let mut sum = lambda!({plus} {nats[4]} {nats[3]});
-    sum.simplify();
-    assert_eq!(sum.to_string(), nats[7].to_string());
-    println!("sum = {}", sum);
-
-    // parse lambda expression
-    let y_comb = lambda!(f.(x. f (x x)) (x. f (x x)));
-    let lambda = r#"\f.(\x. f (x x)) (\x. f (x x))"#;
-    let res = parse(lambda)?;
-    eprintln!("res = {:#}", res); // lambda with De Bruijn index
-    eprintln!("res = {:-}", res); // De Bruijn encoding
-    assert_eq!(res.to_string(), y_comb.to_string());
-
-    Ok(())
-}
-```
-*/
+#![doc = include_str!("../README.md")]
+//!
+//! ## More Example: Church Encoding
+//!
+//! ```rust
+#![doc = include_str!("../examples/church_encoding.rs")]
+//! ```
+//! 
 
 pub mod builder;
 mod error;
 mod eval;
 mod exp;
-mod parser;
+pub mod parser;
 
 pub use error::Error;
 pub use exp::Exp;
 pub use exp::Ident;
-pub use parser::parse;
 
 #[cfg(test)]
 mod tests {
-    use crate::{lambda, parser::parse, Error};
+    use crate::{lambda, parser::{parse_multiline, parse_def}, Error};
 
     #[test]
     fn display() {
@@ -159,13 +124,26 @@ mod tests {
     #[test]
     fn parser() -> Result<(), Error> {
         let y_comb = lambda!(f.(x. f (x x)) (x. f (x x)));
-        let lambda = r#"\f.(\x. f (x x)) (\x. f (x x))"#;
-        let res = parse(lambda)?;
+        let lambda = r#"
+            # test parse_desf
 
-        eprintln!("res = {}", res);
-        eprintln!("res = {:-}", res);
+            # Y combinator
+            Y = \f.(\x. f (x x)) (\x. f (x x))
+            # true
+            tt = \x. \y. x
+            # false
+            ff = \x. \y. y 
+        "#;
+        let res = parse_multiline(lambda)?;
 
-        assert_eq!(res.to_string(), y_comb.to_string());
+        eprintln!("Y = {}", res["Y"]);
+        eprintln!("tt = {:-}", res["tt"]);
+
+        assert_eq!(res["Y"].to_string(), y_comb.to_string());
+
+        let (_, tt) = parse_def(r"tt = \x. \y. x")?;
+
+        assert_eq!(res["tt"].to_string(), tt.to_string());
 
         Ok(())
     }

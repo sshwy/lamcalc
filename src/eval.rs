@@ -6,10 +6,10 @@ where
     T: Clone + Eq + Hash + ToString,
 {
     /// 化简自身，最多化简 100 次
-    pub fn simplify(&mut self) -> Result<(), Error> {
+    pub fn simplify(&mut self) -> Result<&mut Self, Error> {
         for _ in 0..100 {
             if !self.eval_normal_order() {
-                return Ok(())
+                return Ok(self)
             }
         }
         Err(Error::SimplifyLimitExceeded)

@@ -1,0 +1,33 @@
+//! lambda 演算的 pest 语法规则，支持以 # 开头的注释
+
+/// 匹配空白字符并会被忽略
+blank = _{ " "+ }
+
+/// 标识符，以字母或下划线开头，后面可以跟数字、字母或下划线
+ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
+/// lambda 表达式
+exp = { app | bounded_exp | abs }
+
+/// 有边界的表达式
+bounded_exp = { ident | "(" ~ abs ~ ")" | "(" ~ app ~ ")" }
+
+/// application 参数列表中最后的那个表达式
+tail_exp = { bounded_exp | abs }
+
+/// 函数定义表达式
+abs = { "\\" ~ ident ~ blank? ~ "." ~ blank? ~ exp }
+
+/// 函数应用表达式
+app = { (bounded_exp ~ blank)+ ~ tail_exp }
+
+/// lambda 表达式的定义，格式为 ident = exp
+def = { ident ~ blank? ~ "=" ~ blank? ~ exp }
+
+/// 注释（同 C++ 的 #）
+com = { "#" ~ (!NEWLINE ~ ANY)* }
+
+line = { blank? ~ (def ~ blank? | com)? }
+
+/// 多行定义
+file = { SOI ~ (line ~ NEWLINE)* ~ line ~ EOI }
