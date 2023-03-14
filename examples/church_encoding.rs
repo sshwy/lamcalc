@@ -14,7 +14,7 @@ fn main() -> Result<(), Error> {
     }
 
     let sum = lambda!({plus} {nats[4]} {nats[3]}).simplify()?.to_owned();
-    assert_eq!(sum.to_string(), nats[7].to_string());
+    assert_eq!(sum, nats[7]);
 
     Ok(())
 }

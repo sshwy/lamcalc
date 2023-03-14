@@ -23,14 +23,15 @@ fn main () -> Result<(), Error> {
     println!("and = {:-}", and); // De Bruijn encoding
 
     // use braces to refer to previously defined lambda
-    let mut res = lambda!({and} {ff} {tt}); 
-    res.simplify()?; // get simplified result
-    assert_eq!(res.to_string(), ff.to_string());
+    let mut and_f_t = lambda!({and} {ff} {tt}); 
+    and_f_t.simplify()?; // get simplified result
+    assert_eq!(and_f_t, ff);
 
     // parse lambda expression string
     let y_combinator = lambda!(f.(x. f (x x)) (x. f (x x)));
     let y_str = r#"\f.(\x. f (x x)) (\x. f (x x))"#;
     let y2 = parse_exp(y_str)?;
+    // note that y2 has type Exp<String> but y_combinator has type Exp<&str>
     assert_eq!(y2.to_string(), y_combinator.to_string());
 
     Ok(())

@@ -1,13 +1,17 @@
 use crate::{Exp, Error};
 use std::hash::Hash;
 
+/// maximum number of reductions in a simplification
+pub const SIMPLIFY_LIMIT: i32 = 1 << 7;
+
 impl<T> Exp<T>
 where
     T: Clone + Eq + Hash + ToString,
 {
-    /// 化简自身，最多化简 100 次
+    /// Simplify repeatedly using beta-reduction in normal order
+    /// for at most [`SIMPLIFY_LIMIT`] times.
     pub fn simplify(&mut self) -> Result<&mut Self, Error> {
-        for _ in 0..100 {
+        for _ in 0..SIMPLIFY_LIMIT {
             if !self.eval_normal_order() {
                 return Ok(self)
             }
@@ -19,8 +23,8 @@ where
     /// That is, whenever possible the arguments are substituted into
     /// the body of an abstraction before the arguments are reduced.
     ///
-    /// 如果没有发生变化返回 false，否则返回 true
-    pub fn eval_normal_order(&mut self) -> bool {
+    /// return `false` if nothing changes, otherwise `true`.
+    pub(crate) fn eval_normal_order(&mut self) -> bool {
         match self {
             Exp::Var(_) => false,
             Exp::Abs(_, body) => body.eval_normal_order(),

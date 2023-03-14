@@ -1,12 +1,17 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 //!
-//! ## More Example: Church Encoding
+//! ## Example: Church Encoding
 //!
 //! ```rust
 #![doc = include_str!("../examples/church_encoding.rs")]
 //! ```
 //! 
+//! ## Example: Parser
+//! 
+//! ```rust
+#![doc = include_str!("../examples/parser.rs")]
+//! ```
 
 pub mod builder;
 mod error;
@@ -17,6 +22,7 @@ pub mod parser;
 pub use error::Error;
 pub use exp::Exp;
 pub use exp::Ident;
+pub use eval::SIMPLIFY_LIMIT;
 
 #[cfg(test)]
 mod tests {
@@ -125,13 +131,13 @@ mod tests {
     fn parser() -> Result<(), Error> {
         let y_comb = lambda!(f.(x. f (x x)) (x. f (x x)));
         let lambda = r#"
-            # test parse_desf
+            // test parse_desf
 
-            # Y combinator
+            // Y combinator
             Y = \f.(\x. f (x x)) (\x. f (x x))
-            # true
+            // true
             tt = \x. \y. x
-            # false
+            // false
             ff = \x. \y. y 
         "#;
         let res = parse_multiline(lambda)?;

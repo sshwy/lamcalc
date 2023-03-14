@@ -61,7 +61,7 @@ fn build_def(tt: Pair<Rule>) -> Result<(String, Exp<String>), Error> {
 /// 解析一个 lambda 表达式
 pub fn parse_exp(lambda: &str) -> Result<Exp<String>, Error> {
     let exp = LambdaParser::parse(Rule::exp, lambda)
-        .map_err(|e| Error::InvalidRule(e.to_string()))?
+        .map_err(|e| Error::ParseError(e.to_string()))?
         .next()
         .unwrap();
     build_lambda(exp)
@@ -70,7 +70,7 @@ pub fn parse_exp(lambda: &str) -> Result<Exp<String>, Error> {
 /// 解析单行 lambda 表达式的定义
 pub fn parse_def(lambda: &str) -> Result<(String, Exp<String>), Error> {
     let def = LambdaParser::parse(Rule::def, lambda)
-        .map_err(|e| Error::InvalidRule(e.to_string()))?
+        .map_err(|e| Error::ParseError(e.to_string()))?
         .next()
         .unwrap();
     build_def(def)
@@ -79,7 +79,7 @@ pub fn parse_def(lambda: &str) -> Result<(String, Exp<String>), Error> {
 /// 解析多行定义
 pub fn parse_multiline(lambda: &str) -> Result<HashMap<String, Exp<String>>, Error> {
     let lines = LambdaParser::parse(Rule::file, lambda)
-        .map_err(|e| Error::InvalidRule(e.to_string()))?
+        .map_err(|e| Error::ParseError(e.to_string()))?
         .next()
         .unwrap()
         .into_inner();
