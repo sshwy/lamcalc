@@ -1,5 +1,7 @@
 # LamCalc: A lambda calculus implementation in Rust
 
+[![docs.rs](https://img.shields.io/docsrs/lamcalc/latest)](https://docs.rs/lamcalc/latest/lamcalc/)
+
 lamcalc 实现了无类型 lambda 演算.
 
 Inspired by [Lambda Calculus: Basic Interpreter in Rust (Part 2)](https://tejqunair.com/posts/lambda-part-2/).
