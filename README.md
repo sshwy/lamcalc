@@ -1,13 +1,13 @@
-# L Calc: A lambda calculus implementation in Rust
+# LamCalc: A lambda calculus implementation in Rust
 
-l_calc 实现了无类型 lambda 演算.
+lamcalc 实现了无类型 lambda 演算.
 
 Inspired by [Lambda Calculus: Basic Interpreter in Rust (Part 2)](https://tejqunair.com/posts/lambda-part-2/).
 
 ## Quick View
 
 ```rust
-use l_calc::{lambda, Error, parser::parse_exp};
+use lamcalc::{lambda, Error, parser::parse_exp};
 
 fn main () -> Result<(), Error> {
     // define using macro

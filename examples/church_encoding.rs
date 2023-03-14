@@ -1,6 +1,6 @@
 //! Church encoding
 
-use l_calc::{lambda, Error};
+use lamcalc::{lambda, Error};
 
 fn main() -> Result<(), Error> {
     let zero = lambda!(s. (z. z));
