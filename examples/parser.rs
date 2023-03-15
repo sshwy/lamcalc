@@ -2,16 +2,16 @@ use lamcalc::{parser, Error, lambda};
 
 fn main() -> Result<(), Error> {
     // parse single expression
-    let tt = parser::parse_exp(r"\x. \y. x")?;
+    let (tt, _) = parser::parse_exp(r"\x. \y. x")?;
 
     // parse defination statement
-    let (ident, ff) = parser::parse_def(r"ff = \x. \y. y")?;
+    let (ident, ff, _) = parser::parse_def(r"ff = \x. \y. y")?;
     assert_eq!(ident, "ff");
 
     println!("ff = {}", ff);
 
     // parse multiple definations
-    let map = parser::parse_multiline(r##"
+    let (map, _) = parser::parse_file(r##"
         // and
         and = \x. \y. x y x
 

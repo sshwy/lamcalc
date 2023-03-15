@@ -8,9 +8,20 @@ readme = "README.md"
 repository = "https://github.com/sshwy/lamcalc"
 keywords = ["lambda_calculus", "De_Bruijn_encoding", "parser"]
 categories = ["parser-implementations"]
+exclude = ["/pkg", "/web"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 pest = "2.5.6"
 pest_derive = "2.5.6"
+serde = "1.0.156"
+serde_derive = "1.0.156"
+serde_json = "1.0.94"
+wasm-bindgen = "0.2"
+
+[features]
+wasm = []

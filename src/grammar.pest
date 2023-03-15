@@ -1,7 +1,10 @@
-//! lambda 演算的 pest 语法规则，支持以 # 开头的注释
+//! lambda 演算的 pest 语法规则，支持以 // 开头的注释
 
-/// 匹配空白字符并会被忽略
-blank = _{ " "+ }
+/// 匹配空白字符
+blank = @{ " "+ }
+
+/// 不会被忽略的换行
+newline = { NEWLINE }
 
 /// 标识符，以字母或下划线开头，后面可以跟数字、字母或下划线
 ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
@@ -10,24 +13,37 @@ ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 exp = { app | bounded_exp | abs }
 
 /// 有边界的表达式
-bounded_exp = { ident | "(" ~ abs ~ ")" | "(" ~ app ~ ")" }
+bounded_exp = { ident | "(" ~ blank? ~ (abs | app) ~ blank? ~ ")" }
 
 /// application 参数列表中最后的那个表达式
+/// 注意 abs 实际上是贪婪匹配，因此只能放在最后
 tail_exp = { bounded_exp | abs }
 
+/// lambda 的点 '.'
+dot = { "." }
+
+/// lambda symbol
+lamsym = { "\\" }
+
 /// 函数定义表达式
-abs = { "\\" ~ ident ~ blank? ~ "." ~ blank? ~ exp }
+abs = { lamsym ~ ident ~ blank? ~ dot ~ blank? ~ exp }
 
 /// 函数应用表达式
-app = { (bounded_exp ~ blank)+ ~ tail_exp }
+app = {
+    bounded_exp ~ (blank ~ tail_exp)+
+}
+
+/// "="
+eq = { "=" }
 
 /// lambda 表达式的定义，格式为 ident = exp
-def = { ident ~ blank? ~ "=" ~ blank? ~ exp }
+def = { ident ~ blank? ~ eq ~ blank? ~ exp }
 
 /// 注释（同 C++ 的 //）
-com = { "//" ~ (!NEWLINE ~ ANY)* }
+com = @{ "//" ~ (!NEWLINE ~ ANY)* }
 
-line = { blank? ~ (def ~ blank? | com)? }
+/// 多行文件下一行的文法
+line = { blank? ~ (def ~ blank?)? ~ com? }
 
 /// 多行定义
-file = { SOI ~ (line ~ NEWLINE)* ~ line ~ EOI }
+file = { SOI ~ (line ~ newline)* ~ line ~ EOI }

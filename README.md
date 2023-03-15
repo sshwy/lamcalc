@@ -30,7 +30,7 @@ fn main () -> Result<(), Error> {
     // parse lambda expression string
     let y_combinator = lambda!(f.(x. f (x x)) (x. f (x x)));
     let y_str = r#"\f.(\x. f (x x)) (\x. f (x x))"#;
-    let y2 = parse_exp(y_str)?;
+    let (y2, _) = parse_exp(y_str)?;
     // note that y2 has type Exp<String> but y_combinator has type Exp<&str>
     assert_eq!(y2.to_string(), y_combinator.to_string());
 

@@ -6,9 +6,9 @@
 //! ```rust
 #![doc = include_str!("../examples/church_encoding.rs")]
 //! ```
-//! 
+//!
 //! ## Example: Parser
-//! 
+//!
 //! ```rust
 #![doc = include_str!("../examples/parser.rs")]
 //! ```
@@ -18,15 +18,17 @@ mod error;
 mod eval;
 mod exp;
 pub mod parser;
+#[cfg(feature = "wasm")]
+pub mod wasm;
 
 pub use error::Error;
+pub use eval::SIMPLIFY_LIMIT;
 pub use exp::Exp;
 pub use exp::Ident;
-pub use eval::SIMPLIFY_LIMIT;
 
 #[cfg(test)]
 mod tests {
-    use crate::{lambda, parser::{parse_multiline, parse_def}, Error};
+    use crate::{lambda, Error};
 
     #[test]
     fn display() {
@@ -125,32 +127,6 @@ mod tests {
         let mut y_comb = lambda!(f.(x. f (x x)) (x. f (x x)));
         y_comb.simplify().unwrap_err(); // 无限递归
         eprintln!("y_comb = {:-}", y_comb);
-        Ok(())
-    }
-    #[test]
-    fn parser() -> Result<(), Error> {
-        let y_comb = lambda!(f.(x. f (x x)) (x. f (x x)));
-        let lambda = r#"
-            // test parse_desf
-
-            // Y combinator
-            Y = \f.(\x. f (x x)) (\x. f (x x))
-            // true
-            tt = \x. \y. x
-            // false
-            ff = \x. \y. y 
-        "#;
-        let res = parse_multiline(lambda)?;
-
-        eprintln!("Y = {}", res["Y"]);
-        eprintln!("tt = {:-}", res["tt"]);
-
-        assert_eq!(res["Y"].to_string(), y_comb.to_string());
-
-        let (_, tt) = parse_def(r"tt = \x. \y. x")?;
-
-        assert_eq!(res["tt"].to_string(), tt.to_string());
-
         Ok(())
     }
 }
