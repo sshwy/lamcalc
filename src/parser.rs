@@ -10,6 +10,7 @@
 use crate::{builder, Error, Exp};
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
+use serde::Serialize;
 use std::collections::HashMap;
 
 /// 使用 [pest](https://pest.rs/) 构建的 lambda 表达式解析器
@@ -18,7 +19,8 @@ use std::collections::HashMap;
 pub struct LambdaParser;
 
 /// 原始代码的 token
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+#[serde(tag = "kind", content = "data")]
 pub enum Token {
     /// 一个 . 字符
     DotSym,

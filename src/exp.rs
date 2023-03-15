@@ -1,6 +1,6 @@
 use std::{fmt::Write, hash::Hash};
 
-use serde_derive::Serialize;
+use serde::Serialize;
 
 /// 变量的标识符，可以在输出 lamda 表达式的时候更 human-readable.
 ///
