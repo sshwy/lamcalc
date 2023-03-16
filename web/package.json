@@ -13,6 +13,7 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "@vueuse/core": "^9.13.0"
+    "@vueuse/core": "^9.13.0",
+    "markdown-it-footnote": "^3.0.3"
   }
 }
