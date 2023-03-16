@@ -7,8 +7,3 @@ defineProps<{
 <template>
   <span class="lambda-ident" :title="de.toString()">{{ ident }}</span>
 </template>
-<style>
-.lambda-ident {
-  color: var(--vp-c-lambda-ident);
-}
-</style>

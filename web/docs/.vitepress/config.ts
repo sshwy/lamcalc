@@ -7,6 +7,9 @@ import markdownItFootnote from 'markdown-it-footnote'
 const macros = [{
   pattern: /{L}/g,
   replacer: () => 'λ-Calculus'
+}, {
+  pattern: /L`(.*?)`/g,
+  replacer: ($, $1) => `<code>${$1}</code>`
 }]
 
 // https://vitepress.dev/reference/site-config

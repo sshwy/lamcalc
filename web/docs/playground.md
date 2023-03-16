@@ -10,4 +10,6 @@ outline: deep
 import LambdaPlayground from '../components/LambdaPlayground.vue'
 </script>
 
-<LambdaPlayground />
+<ClientOnly>
+  <LambdaPlayground />
+</ClientOnly>
