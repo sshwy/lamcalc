@@ -6,6 +6,7 @@ const self = ref<HTMLElement>(null)
 const props = defineProps<{
   enableDrag: () => void
   disableDrag: () => void
+  redex?: boolean
 }>()
 
 const enableDragTrigger = () => {
@@ -28,11 +29,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <span class="lambda-abs-head" ref="self"><slot></slot></span>
+  <span :class="[redex ? 'lambda-abs-head-redex' : '']" ref="self"><slot></slot></span>
 </template>
 
 <style>
-.lambda-abs-head:hover {
+.lambda-abs-head-redex:hover {
   cursor: move;
   text-decoration: underline;
 }

@@ -11,5 +11,8 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "NODE_OPTIONS='--experimental-wasm-modules --experimental-loader ./ems_loader.mjs' vitepress build docs",
     "docs:preview": "vitepress preview docs"
+  },
+  "dependencies": {
+    "@vueuse/core": "^9.13.0"
   }
 }

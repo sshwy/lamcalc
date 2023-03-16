@@ -1283,8 +1283,8 @@ __metadata:
 
 "lamcalc@file:../pkg::locator=web%40workspace%3A.":
   version: 0.1.0
-  resolution: "lamcalc@file:../pkg#../pkg::hash=01f727&locator=web%40workspace%3A."
-  checksum: ddf645394c7baeea9c3405adacda16584931a05c6d134f2924bee1d3774861a54c52c92520a1f8e6648e2d0efb53d4e8ed06f258274a4d5a5b24c1203e54363f
+  resolution: "lamcalc@file:../pkg#../pkg::hash=783685&locator=web%40workspace%3A."
+  checksum: 8228621b881bdc6b3e88c7c52e1803849feeefac3b184bc666811c934cdcd6690f3d63d6d30994073081c9680d0832505f534bb0a02ccd3a4afced09f6c6d24b
   languageName: node
   linkType: hard
 
@@ -1983,6 +1983,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "web@workspace:."
   dependencies:
+    "@vueuse/core": ^9.13.0
     lamcalc: "file:../pkg"
     vite-plugin-top-level-await: ^1.3.0
     vite-plugin-wasm: ^3.2.2

@@ -6,65 +6,46 @@ import AppWrapper from './AppWrapper.vue';
 import { computed, ref } from 'vue';
 
 const props = defineProps<{
-  bounded?: boolean
-  redexTrigger?: () => void
-  inAppFirst?: boolean
-  inAppSecond?: boolean
-  Abs?: [any, any]
-  App?: [any, any]
-  Var?: [string, number]
+  marked: boolean
+  parentheses: boolean
   bracketLevel: number
+  inner: any
+  redexTrigger?: () => void
 }>()
 
-const nextLevel = props.bracketLevel + (props.bounded ? 1 : 0)
-const displayPar = computed(() => props.bounded && !props.Var && !(props.App && props.inAppFirst))
+const emit = defineEmits<{
+  (e: 'beta-reduce', id: number): void
+}>()
+
+const nextLevel = computed(() => props.bracketLevel + (props.parentheses ? 1 : 0))
 
 const self = ref<HTMLElement>(null)
 const param = ref<HTMLElement>(null)
 
-const hightlightBetaRedex = computed(() => props.App && props.App[0].Abs ? (enable: boolean) => {
-  (param.value as any).highlight(enable)
+const hightlightBetaRedex = computed(() => props.inner.App?.beta_redex ? (enable: boolean) => {
+  (param.value as any).highlight(enable, props.inner.App.beta_redex)
 } : undefined)
 
-// console.log(hightlightBetaRedex, props)
+// console.log(props)
 
 const classes = ref('')
-const highlight = (enable: boolean) => {
-  console.log('highlight', enable)
-  console.log(self.value)
+const highlight = (enable: boolean, redex: number) => {
+  console.log('highlight', enable, 'redex:', redex)
 
-  let debounceTimer: number | null = null;
-  const debounce = (callback: any, time: number) => {
-    if (debounceTimer === null) {
-      debounceTimer = setTimeout(callback(), 0);
-    } else {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(callback, time);
-    }
-  };
+  self.value.addEventListener('dragover', event => {
+    event.preventDefault() // prevent default to allow drop
+  })
 
-  const dragOver = () => {
-    // console.log('dragOver!')
-    debounce(() => {
-      try {
-        classes.value = "lambda-dragover"
-      } catch (e) {
-        console.warn(e)
-      }
-    }, 30)
-  }
-  const dragLeave = () => {
-    debounce(() => {
-      if (classes.value === 'lambda-dragover') classes.value = "lambda-highlight"
-    }, 100)
-  }
+  self.value.addEventListener('drop', event => {
+    event.preventDefault();
+    // console.log(event.target)
+    emit('beta-reduce', redex)
+  }, { once: true })
+
+
   if (enable) {
     classes.value = 'lambda-highlight'
-    self.value.addEventListener('dragover', dragOver)
-    self.value.addEventListener('dragleave', dragLeave)
   } else {
-    self.value.removeEventListener('dragover', dragOver)
-    self.value.removeEventListener('dragleave', dragLeave)
     classes.value = ''
   }
 }
@@ -77,32 +58,26 @@ defineExpose({
 
 <template>
   <span ref="self" :class="['lambda', classes]">
-    <span v-if="displayPar" :class="`lambda-bracket-${bracketLevel % 3}`">(</span>
+    <span v-if="parentheses" :class="`lambda-bracket-${bracketLevel % 3}`">(</span>
 
-    <AbsWrapper v-if="Abs" v-slot="slotProps" :redex-trigger="redexTrigger">
-      <AbsHead v-bind="slotProps">
+    <AbsWrapper v-if="inner.Abs" v-slot="slotProps" :redex-trigger="redexTrigger">
+      <AbsHead v-bind="slotProps" :redex="!!redexTrigger">
         <span class="lambda-lambda">λ</span>
-        <Ident :ident="Abs[0][0]" :de="Abs[0][1]" />
+        <Ident :ident="inner.Abs.ident" :de="0" />
       </AbsHead>
       <span class="lambda-dot">.</span>
-      <Exp v-bind="Abs[1]" :bracket-level="nextLevel" />
+      <Exp @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.Abs.body" :bracket-level="nextLevel" />
     </AbsWrapper>
-    <AppWrapper v-else-if="App">
-      <Exp v-bind="App[0]" bounded in-app-first :bracket-level="bracketLevel" :redex-trigger="hightlightBetaRedex" />
+    <AppWrapper v-else-if="inner.App">
+      <Exp @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.App.func" :bracket-level="nextLevel" :redex-trigger="hightlightBetaRedex" />
       <span class="lambda-blank"> {{ " " }} </span>
-
-      <!-- <template v-if="inAppFirst && App[1].Abs">
-        <span :class="`lambda-bracket-${bracketLevel % 3}`">(</span>
-        <Exp ref="param" v-bind="App[1]" in-app-second :bracket-level="bracketLevel + 1" />
-        <span :class="`lambda-bracket-${bracketLevel % 3}`">)</span>
-      </template> -->
-      <Exp ref="param" v-bind="App[1]" bounded in-app-second :bracket-level="bracketLevel" />
+      <Exp @beta-reduce="id => $emit('beta-reduce', id)" ref="param" v-bind="inner.App.body" :bracket-level="nextLevel" />
     </AppWrapper>
-    <span v-else-if="Var" class="lambda-var">
-      <Ident :ident="Var[0]" :de="Var[1]" />
+    <span v-else-if="inner.Var" class="lambda-var">
+      <Ident :ident="inner.Var.ident" :de="inner.Var.code" />
     </span>
 
-    <span v-if="displayPar" :class="`lambda-bracket-${bracketLevel % 3}`">)</span>
+    <span v-if="parentheses" :class="`lambda-bracket-${bracketLevel % 3}`">)</span>
   </span>
 </template>
 
@@ -142,6 +117,11 @@ defineExpose({
   padding: 2px 4px 0px;
   border-radius: 6px;
 }
+
+.lambda-highlight:hover {
+  background-color: var(--vp-c-lambda-hlbg);
+}
+
 
 .lambda-dragover {
   background-color: var(--vp-c-lambda-hlbg);

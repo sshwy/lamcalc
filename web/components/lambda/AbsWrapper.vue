@@ -10,25 +10,26 @@ const self = ref<HTMLElement>(null)
 const startDrag = () => {
   const trigger = props.redexTrigger
   if (trigger) trigger(true)
-  document.addEventListener('dragend', () => {
+
+  const disable = () => {
     if (trigger) trigger(false)
-    console.log('remove listener')
-    self.value.removeEventListener('dragstart', startDrag);
-  })
-  document.addEventListener('mouseup', () => {
-    if (trigger) trigger(false)
-    console.log('remove listener')
-    self.value.removeEventListener('dragstart', startDrag);
-  })
+
+    document.removeEventListener('dragend', disable)
+    document.removeEventListener('mouseup', disable);
+  }
+
+  document.addEventListener('dragend', disable)
+  document.addEventListener('mouseup', disable);
 }
 
 const enableDrag = () => {
-  console.log('enable')
+  console.debug('enable')
   self.value.addEventListener('dragstart', startDrag);
   self.value.draggable = true
 }
 const disableDrag = () => {
-  console.log('disable')
+  console.debug('disable')
+  self.value.removeEventListener('dragstart', startDrag);
   self.value.draggable = false
 }
 
