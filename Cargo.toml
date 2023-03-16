@@ -25,3 +25,6 @@ wasm-bindgen = "0.2"
 
 [features]
 wasm = []
+
+[package.metadata.docs.rs]
+features = ["wasm"]

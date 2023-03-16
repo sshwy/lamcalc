@@ -13,8 +13,10 @@ pub struct Calculator {
     steps: Vec<Step>,
 }
 
+/// 实现 lambda 表达式的分布计算、化简
 #[wasm_bindgen]
 impl Calculator {
+    /// 新建一个 lambda 表达式计算器
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         Self { steps: Vec::new() }
