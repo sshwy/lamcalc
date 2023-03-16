@@ -31,35 +31,11 @@ pub enum Exp<T: Clone + Eq + Hash + ToString> {
 }
 
 impl<T: Clone + Eq + Hash + ToString> Exp<T> {
-    /// 标识符与 var 相同的 unbounded 变量绑定为 var
-    ///
-    /// de_bruijn_index 的初值为 0
-    pub(crate) fn bind(&mut self, id: &T, de_bruijn_index: usize) -> &mut Self {
-        match self {
-            Exp::Var(var) => {
-                if var.0 == *id {
-                    var.1 = de_bruijn_index
-                }
-            }
-            Exp::Abs(var, exp) => {
-                if var.0 != *id {
-                    exp.bind(id, de_bruijn_index + 1);
-                }
-            }
-            Exp::App(l, exp) => {
-                l.bind(id, de_bruijn_index);
-                exp.bind(id, de_bruijn_index);
-            }
-        };
-        self
-    }
     /// 进行标识符的替换
     /// 在不允许表达式中出现自由变量的情况下（遇到了就忽略），被替换的变量
     /// 的 de_bruijn_index 总是 >0，并且我们总是将某个 abstraction 的参数
     /// 进行替换。因此只用记 de_bruijn_index 即可。
-    pub(crate) fn subst_de(&mut self, de_index: usize, exp: &Exp<T>) -> &mut Self {
-        // dbg!(de_index);
-        // eprintln!("{:#}", self);
+    fn subst_de(&mut self, de_index: usize, exp: &Exp<T>) -> &mut Self {
         match self {
             Exp::Var(Ident(_, de)) => {
                 if de_index == *de {
@@ -67,6 +43,9 @@ impl<T: Clone + Eq + Hash + ToString> Exp<T> {
                 }
             }
             Exp::Abs(_, body) => {
+                if let Exp::Var(Ident(ident, code)) = exp {
+                    body.subst_de(de_index + 1, &Exp::Var(Ident(ident.clone(), *code + 1)));
+                }
                 body.subst_de(de_index + 1, exp);
             }
             Exp::App(l, body) => {
@@ -75,6 +54,46 @@ impl<T: Clone + Eq + Hash + ToString> Exp<T> {
             }
         };
         self
+    }
+    /// 将表达式中被**外部**捕获的变量的 code 都减少 1
+    fn lift(&mut self, min_de: usize) {
+        match self {
+            Exp::Var(Ident(_, code)) => {
+                if *code >= min_de {
+                    *code = *code - 1;
+                }
+            },
+            Exp::Abs(_, body) => {
+                body.lift(min_de + 1);
+            },
+            Exp::App(func, body) =>{
+                func.lift(min_de);
+                body.lift(min_de);
+            }
+        }
+    }
+    fn unwrap_abs(&mut self) {
+        if let Exp::Abs(_, body) = self {
+            *self = *body.clone();
+        } else {
+            panic!("not abs!")
+        }
+    }
+    pub(crate) fn beta_reduce(&mut self) -> bool {
+        if let Exp::App(func, body) = self {
+            let mut is_redex = false;
+            if let Exp::Abs(_, _) = &mut **func {
+                is_redex = true;
+            }
+            if is_redex {
+                func.subst_de(0, &body);
+                func.lift(1);
+                func.unwrap_abs();
+                *self = *func.clone();
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -140,5 +159,23 @@ impl<T: Clone + Eq + Hash + ToString> std::fmt::Display for Exp<T> {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::lambda;
+
+    #[test]
+    fn subst() {
+        let tt = lambda!(x. (y. x));
+        let and = lambda!(x. y. x y x);
+
+        let mut e = and.clone();
+        e.subst_de(0, &tt);
+        assert_eq!(
+            format!("{:#}", e),
+            "λx. λy. ((λx. λy. x<2>) y<1>) λx. λy. x<2>"
+        );
     }
 }

@@ -2,6 +2,30 @@
 use crate::exp::{Exp, Ident};
 use std::hash::Hash;
 
+impl<T: Clone + Eq + Hash + ToString> Exp<T> {
+    /// 标识符与 var 相同的 unbounded 变量绑定为 var
+    ///
+    /// de_bruijn_index 的初值为 0
+    fn bind(&mut self, id: &T, de_bruijn_index: usize) -> &mut Self {
+        match self {
+            Exp::Var(var) => {
+                if var.0 == *id {
+                    var.1 = de_bruijn_index
+                }
+            }
+            Exp::Abs(var, exp) => {
+                if var.0 != *id {
+                    exp.bind(id, de_bruijn_index + 1);
+                }
+            }
+            Exp::App(l, exp) => {
+                l.bind(id, de_bruijn_index);
+                exp.bind(id, de_bruijn_index);
+            }
+        };
+        self
+    }
+}
 /// 创建一个函数应用的表达式（左结合）
 pub fn app<T>(exps: Vec<Exp<T>>) -> Exp<T>
 where

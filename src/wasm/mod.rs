@@ -1,12 +1,14 @@
 //! <span class="feat-badge" style="color: chocolate; font-weight: bold; background: blanchedalmond; padding: 0 5px; border-radius: 5px; display: inline-block;">feature: wasm</span> WASM bindings for this library.
 
-use serde::Serialize;
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-
 use crate::{
     parser::{self, Token},
     Exp,
 };
+use serde::Serialize;
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
+mod calculator;
+mod exp;
 
 #[derive(Serialize)]
 struct ParseExpResult {

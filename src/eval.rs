@@ -25,17 +25,14 @@ where
     ///
     /// return `false` if nothing changes, otherwise `true`.
     pub(crate) fn eval_normal_order(&mut self) -> bool {
+        if self.beta_reduce() {
+            return true;
+        }
         match self {
             Exp::Var(_) => false,
             Exp::Abs(_, body) => body.eval_normal_order(),
             Exp::App(l, body) => {
-                // let l2 = l.clone();
-                if let Exp::Abs(_, abs_body) = &mut **l {
-                    abs_body.subst_de(1, &body);
-                    // eprintln!("将 \x1b[32m{}\x1b[0m 带入 \x1b[32m{}\x1b[0m", body, l2);
-                    *self = *abs_body.clone();
-                    true
-                } else if l.eval_normal_order() {
+                if l.eval_normal_order() {
                     true
                 } else {
                     body.eval_normal_order()

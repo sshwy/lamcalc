@@ -64,18 +64,6 @@ mod tests {
         println!("{}\n{}", test_app, test_app2);
     }
     #[test]
-    fn subst() {
-        let tt = lambda!(x. (y. x));
-        let and = lambda!(x. y. x y x);
-
-        let mut e = and.clone();
-        e.subst_de(0, &tt);
-        assert_eq!(
-            format!("{:#}", e),
-            "λx. λy. ((λx. λy. x<2>) y<1>) λx. λy. x<2>"
-        );
-    }
-    #[test]
     fn eval() {
         let tt = lambda!(x. (y. x));
         let and = lambda!(x. y. x y x);
@@ -116,7 +104,7 @@ mod tests {
         }
         let mut test = lambda!({plus} {nats[4]} {nats[3]});
         test.simplify()?;
-        println!("test = {:-}", test);
+        println!("test = {:#}", test);
 
         assert_eq!(test.to_string(), nats[7].to_string());
         Ok(())
