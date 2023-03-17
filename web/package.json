@@ -14,8 +14,7 @@
     "docs:build": "NODE_OPTIONS='--experimental-wasm-modules --experimental-loader ./ems_loader.mjs' vitepress build docs",
     "debug:build": "DEBUG=true NODE_OPTIONS='--experimental-wasm-modules --experimental-loader ./ems_loader.mjs' vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "docs:build-notes.sshwy.name": "NODE_OPTIONS='--experimental-wasm-modules --experimental-loader ./ems_loader.mjs' vitepress build docs --base /static/lambda/",
-    "docs:preview-notes.sshwy.name": "vitepress preview docs --base /static/lambda/"
+    "docs:build-github-pages": "NODE_OPTIONS='--experimental-wasm-modules --experimental-loader ./ems_loader.mjs' vitepress build docs --base /lamcalc/"
   },
   "dependencies": {
     "@types/katex": "^0.16.0",
