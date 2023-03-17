@@ -13,6 +13,7 @@
 #![doc = include_str!("../examples/parser.rs")]
 //! ```
 
+#[doc(hidden)]
 pub mod builder;
 mod error;
 mod eval;

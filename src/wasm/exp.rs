@@ -34,9 +34,9 @@ pub enum InnerExp {
 #[derive(Serialize, Debug)]
 pub struct JsExp {
     /// 是否被标记（一般用于显示发生变化的部分）
-    pub marked: bool,
+    marked: bool,
     /// 是否要加括号
-    pub parentheses: bool,
+    parentheses: bool,
     inner: InnerExp,
 }
 

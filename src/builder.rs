@@ -1,4 +1,4 @@
-//! 快速创建 lambda 表达式的辅助函数和 macro.
+//! Conveniently build Lambda expressions.
 use crate::exp::{Exp, Ident};
 use std::hash::Hash;
 
@@ -27,6 +27,7 @@ impl<T: Clone + Eq + Hash + ToString> Exp<T> {
     }
 }
 /// 创建一个函数应用的表达式（左结合）
+#[doc(hidden)]
 pub fn app<T>(exps: Vec<Exp<T>>) -> Exp<T>
 where
     T: Clone + Eq + Hash + ToString,
@@ -42,6 +43,7 @@ where
 }
 
 /// 创建一个函数表达式，自动捕获 `exp` 中的同名变量（除了同名参数的 abs 内部）
+#[doc(hidden)]
 pub fn abs<T>(v: T, exp: Exp<T>) -> Exp<T>
 where
     T: Clone + Eq + Hash + ToString,
@@ -52,6 +54,7 @@ where
 }
 
 /// 创建一个变量表达式
+#[doc(hidden)]
 pub fn unbounded_var<T>(v: T) -> Exp<T>
 where
     T: Clone + Eq + Hash + ToString,
@@ -68,7 +71,14 @@ where
 }
 
 // The keyword metavariable $crate can be used to refer to the current crate;
-/// 快速构建以 string 为标识符的 lambda 表达式.
+/// Build lambda expression with [`String`] identifier conveniently.
+/// Generally:
+/// 
+/// 1. Dot `.` can be used to define abstraction.
+/// 2. Parentheses can be used to denote subexpression.
+/// 3. Application is left associated by default.
+/// 
+/// Checkout examples in home page.
 #[macro_export]
 macro_rules! lambda {
     // 消掉外层括号

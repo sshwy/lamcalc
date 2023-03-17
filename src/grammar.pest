@@ -1,4 +1,4 @@
-//! lambda 演算的 pest 语法规则，支持以 // 开头的注释
+//! Lambda expression definition with comments starting with //
 
 /// 匹配空白字符
 blank = @{ " "+ }

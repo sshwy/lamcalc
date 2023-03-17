@@ -2,24 +2,25 @@ use std::{fmt::Write, hash::Hash};
 
 use serde::Serialize;
 
-/// 变量的标识符，可以在输出 lamda 表达式的时候更 human-readable.
+/// Identifier of variables.
 ///
-/// 第一个参数是标识符本身，第二个是变量的 ID，这里采用
-/// [De Bruijn index](https://en.wikipedia.org/wiki/De_Bruijn_index)
-/// 实现，在做 beta 规约的时候会方便很多。
-/// 如果为 0 那么就是自由变量/unbounded（lambda 函数的参数）。
+/// Adopt [De Bruijn index](https://en.wikipedia.org/wiki/De_Bruijn_index) 
+/// for the second field, where 0 is for free variables and others are for
+/// bounded/captured variables.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct Ident<T: Clone + Eq + Hash + ToString>(pub T, pub usize);
 
-/// lambda 演算中的表达式.
+/// Expression in Lambda Calculus.
 ///
-/// T 是变量的标识符类型
+/// T represents the type of indentifiers.
+/// 
+/// Formatting:
 ///
-/// 使用 `{}` 则输出简洁的 lambda 表达式，
-/// 使用 `{:#}` 可以输出 De Bruijn index，
-/// 使用 `{:-}` 输出 De Bruijn encoding 格式
+/// - use `{}` for simple format
+/// - use `{:#}` for extra De Bruijn index information
+/// - use `{:-}` for De Bruijn encoding
 ///
-/// 使用 [`lambda`](crate::lambda) macro 可以以快速创建 lambda 表达式
+/// use [`lambda`](crate::lambda) macro to create lambda expression efficiently.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum Exp<T: Clone + Eq + Hash + ToString> {
     /// 一个变量

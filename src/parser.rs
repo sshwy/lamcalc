@@ -1,7 +1,10 @@
 #![allow(missing_docs)]
-//! 解析 lambda 表达式.
+//! Parse Lambda expressions in text.
 //!
-//! 使用 PEG 描述的语法规则如下（`~`表示拼接，`+` 表示一次或更多，`?` 表示 0 次或一次，`|` 表示选择）：
+//! The parsing expression grammar (PEG) of Lambda expression 
+//! definitions is defined as (`~` for concatenation, `*` for zero or more,
+//! `+` for one or more, 
+//! `?` for one or none, and `|` for selection):
 //!
 //! ```pest
 #![doc = include_str!("./grammar.pest")]
