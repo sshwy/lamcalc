@@ -72,22 +72,30 @@ impl JsExp {
         }
     }
     /// 初始化后添加括号
-    fn decorate(&mut self, is_app_func: bool, is_app_body: bool, redex_counter: &mut usize) {
+    fn decorate(
+        &mut self,
+        is_app_func: bool,
+        is_app_body: bool,
+        is_tail: bool,
+        redex_counter: &mut usize,
+    ) {
         match &mut self.inner {
             InnerExp::Var(_) => {}
             InnerExp::Abs(abs) => {
                 abs.in_beta_redex = is_app_func;
-                if is_app_func {
+                if is_app_func || !is_tail {
                     self.parentheses = true;
                 }
-                abs.body.decorate(false, false, redex_counter);
+                abs.body
+                    .decorate(false, false, self.parentheses || is_tail, redex_counter);
             }
             InnerExp::App(app) => {
                 if is_app_body {
                     self.parentheses = true;
                 }
-                app.func.decorate(true, false, redex_counter);
-                app.body.decorate(false, true, redex_counter);
+                app.func.decorate(true, false, false, redex_counter);
+                app.body
+                    .decorate(false, true, self.parentheses || is_tail, redex_counter);
                 if let InnerExp::Abs(_) = app.func.inner {
                     *redex_counter = *redex_counter + 1;
                     app.beta_redex = Some(*redex_counter)
@@ -98,13 +106,17 @@ impl JsExp {
     pub(crate) fn from_exp(expr: &crate::Exp<String>) -> Self {
         let mut exp = Self::init_exp(expr);
         let mut redex_counter = 0;
-        exp.decorate(false, true, &mut redex_counter);
+        exp.decorate(false, false, true, &mut redex_counter);
         exp
     }
 }
 
 impl Exp<String> {
-    pub(crate) fn reduce_beta_redex(&mut self, display_exp: &JsExp, id: usize) -> Result<(), Error> {
+    pub(crate) fn reduce_beta_redex(
+        &mut self,
+        display_exp: &JsExp,
+        id: usize,
+    ) -> Result<(), Error> {
         if let InnerExp::App(app) = &display_exp.inner {
             if let Some(beta_redex) = app.beta_redex {
                 if beta_redex == id {

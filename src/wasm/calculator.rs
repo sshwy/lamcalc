@@ -23,7 +23,7 @@ impl Calculator {
     }
     /// 从一个 lambda 表达式开始演算
     ///
-    /// return initial Exp
+    /// return initial JsExp
     pub fn init(&mut self, expr: &str) -> Result<JsValue, String> {
         let (exp, _) = parser::parse_exp(expr).map_err(|e| e.to_string())?;
         let wasm_exp = JsExp::from_exp(&exp);
