@@ -2,6 +2,8 @@
   "name": "web",
   "packageManager": "yarn@3.4.1",
   "devDependencies": {
+    "@types/node": "^18.15.3",
+    "git-describe": "^4.1.1",
     "lamcalc": "file:../pkg",
     "vite-plugin-top-level-await": "^1.3.0",
     "vite-plugin-wasm": "^3.2.2",
@@ -10,7 +12,10 @@
   "scripts": {
     "docs:dev": "vitepress dev docs",
     "docs:build": "NODE_OPTIONS='--experimental-wasm-modules --experimental-loader ./ems_loader.mjs' vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "debug:build": "DEBUG=true NODE_OPTIONS='--experimental-wasm-modules --experimental-loader ./ems_loader.mjs' vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:build-notes.sshwy.name": "NODE_OPTIONS='--experimental-wasm-modules --experimental-loader ./ems_loader.mjs' vitepress build docs --base /static/lambda/",
+    "docs:preview-notes.sshwy.name": "vitepress preview docs --base /static/lambda/"
   },
   "dependencies": {
     "@types/katex": "^0.16.0",

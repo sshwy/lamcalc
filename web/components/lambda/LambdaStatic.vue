@@ -2,7 +2,6 @@
 import { Calculator } from 'lamcalc';
 import { ref } from 'vue';
 import ExpStatic from './ExpStatic.vue'
-import './style.css'
 
 const props = defineProps<{
   block?: boolean

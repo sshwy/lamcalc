@@ -3,6 +3,30 @@ import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 import markdownItFootnote from 'markdown-it-footnote'
 import markdownItKatex from './theme/katex'
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path'
+
+import gitDiscribe from 'git-describe';
+import { fileURLToPath } from 'node:url';
+
+const getLatestHash = () => {
+  try {
+    return gitDiscribe.gitDescribeSync({
+      dirtyMark: '-unstaged',
+      customArguments: ['--tags']
+    }).hash
+  } catch (e) {
+    return ''
+  }
+}
+
+const getVitePressVersion = () => {
+  try {
+    return String(JSON.parse(readFileSync(join(process.cwd(), 'node_modules', 'vitepress', 'package.json')).toString()).version);
+  } catch (e) {
+    return ''
+  }
+}
 
 // 进行文本替换
 const macros: {
@@ -18,6 +42,9 @@ const macros: {
   pattern: /L`(.*?)`/g,
   replacer: (_, $1) => `<code>${$1}</code>`
 }]
+
+
+console.log(getVitePressVersion(), getLatestHash())
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -48,8 +75,10 @@ export default defineConfig({
 
     footer: {
       message: '本站内容遵循 MIT 许可协议',
-      copyright: 'Copyright © 2023-present Weiyao Huang'
-    },
+      copyright: 'Copyright © 2023-present Weiyao Huang',
+      hash: getLatestHash(),
+      vitePressVersion: getVitePressVersion(),
+    } as any,
 
     editLink: {
       pattern: 'https://github.com/sshwy/lamcalc/tree/master/web/docs/:path',
@@ -60,7 +89,17 @@ export default defineConfig({
     plugins: [
       wasm(),
       topLevelAwait()
-    ]
+    ],
+    resolve: {
+      alias: [
+        {
+          find: /^.*\/VPFooter\.vue$/,
+          replacement: fileURLToPath(
+            new URL('./theme/ExtendVPFooter.vue', import.meta.url)
+          )
+        }
+      ]
+    }
   },
   locales: {
     root: {

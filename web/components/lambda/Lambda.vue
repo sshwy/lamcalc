@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import Exp from './Exp.vue';
-import './style.css'
 
 const props = defineProps<{
   exp: any

@@ -2,7 +2,6 @@
 import Ident from './Ident.vue';
 import AbsHead from './AbsHead.vue';
 import AbsWrapper from './AbsWrapper.vue'
-import AppWrapper from './AppWrapper.vue';
 import { computed, ref } from 'vue';
 
 const props = defineProps<{
@@ -68,11 +67,11 @@ defineExpose({
       <span class="lambda-dot">.</span>
       <Exp @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.Abs.body" :bracket-level="nextLevel" />
     </AbsWrapper>
-    <AppWrapper v-else-if="inner.App">
+    <span v-else-if="inner.App" class="lambda-app">
       <Exp @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.App.func" :bracket-level="nextLevel" :redex-trigger="hightlightBetaRedex" />
       <span class="lambda-blank"> {{ " " }} </span>
       <Exp @beta-reduce="id => $emit('beta-reduce', id)" ref="param" v-bind="inner.App.body" :bracket-level="nextLevel" />
-    </AppWrapper>
+    </span>
     <span v-else-if="inner.Var" class="lambda-var">
       <Ident :ident="inner.Var.ident" :de="inner.Var.code" />
     </span>
