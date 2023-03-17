@@ -3,23 +3,16 @@
 layout: home
 title: Lambda Calculus
 hero:
-  name: An Elegant Road to λ-Calculus
+  name: An Elegant Road to the Profound λ-Calculus
   text: Learn lambda calculus interactively!
-  # tagline: Presented by Sshwy
+  tagline: Despite lack of knowledge in Computer Science
+  
   actions:
     - theme: brand
-      text: Start Your Journey (Chinese)
-      link: /ch01-introduction
+      text: Start Your Journey
+      link: /en/ch01-intro
     - theme: alt
       text: Playground
-      link: /playground
-
-# features:
-#   - title: Feature A
-#     details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-#   - title: Feature B
-#     details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-#   - title: Feature C
-#     details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+      link: /en/playground
 ---
 

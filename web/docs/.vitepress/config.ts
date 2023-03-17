@@ -5,7 +5,10 @@ import markdownItFootnote from 'markdown-it-footnote'
 import markdownItKatex from './theme/katex'
 
 // 进行文本替换
-const macros = [{
+const macros: {
+  pattern: RegExp,
+  replacer: (substring: string, ...args: any[]) => string
+}[] = [{
   pattern: /{L}/g,
   replacer: () => 'λ-Calculus'
 }, {
@@ -13,7 +16,7 @@ const macros = [{
   replacer: () => 'λ'
 }, {
   pattern: /L`(.*?)`/g,
-  replacer: ($, $1) => `<code>${$1}</code>`
+  replacer: (_, $1) => `<code>${$1}</code>`
 }]
 
 // https://vitepress.dev/reference/site-config
@@ -21,6 +24,7 @@ export default defineConfig({
   description: "Learn lambda calculus interactively!",
   title: "λ-Calculus: 道生万物",
   titleTemplate: ":title | λ-Calculus: 道生万物",
+  lastUpdated: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
@@ -31,10 +35,11 @@ export default defineConfig({
       {
         text: '章节列表',
         items: [
-          { text: '梦的开始', link: '/ch01-introduction' },
-          { text: '函数与符号', link: '/ch02-function' },
-        ]
-      }
+          { text: '梦的开始', link: '/ch01-intro' },
+          { text: '函数与符号', link: '/ch02-func' },
+        ],
+      },
+      { text: '在线演绎 λ-Calculus', link: '/playground' },
     ],
 
     socialLinks: [
@@ -44,6 +49,11 @@ export default defineConfig({
     footer: {
       message: '本站内容遵循 MIT 许可协议',
       copyright: 'Copyright © 2023-present Weiyao Huang'
+    },
+
+    editLink: {
+      pattern: 'https://github.com/sshwy/lamcalc/tree/master/web/docs/:path',
+      text: '在 GitHub 上编辑此页',
     }
   },
   vite: {
@@ -66,20 +76,25 @@ export default defineConfig({
       themeConfig: {
         siteTitle: "Road to λ-Calculus",
         nav: [
-          { text: 'Home', link: '/' },
-          { text: 'Playground', link: '/playground' },
+          { text: 'Home', link: '/en/' },
+          { text: 'Playground', link: '/en/playground' },
         ],
         sidebar: [
           {
-            text: 'Examples',
+            text: 'Chapters',
             items: [
-              { text: 'Introduction', link: '/ch01-introduction' },
+              { text: 'Introduction', link: '/en/ch01-intro' },
             ]
-          }
+          },
+          { text: 'Playground', link: '/en/playground' },
         ],
         footer: {
           message: 'Released under the MIT License.',
           copyright: 'Copyright © 2023-present Weiyao Huang'
+        },
+        editLink: {
+          pattern: 'https://github.com/sshwy/lamcalc/tree/master/web/docs/:path',
+          text: 'Edit this page on Github',
         }
       },
     }

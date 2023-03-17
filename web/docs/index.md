@@ -9,7 +9,7 @@ hero:
   actions:
     - theme: brand
       text: 开始阅读
-      link: /ch01-introduction
+      link: /ch01-intro
     - theme: alt
       text: 在线演绎 λ-Calculus
       link: /playground
