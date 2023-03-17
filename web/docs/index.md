@@ -4,7 +4,7 @@ layout: home
 title: Home
 hero:
   name: 'λ-Calculus: 道生万物'
-  text: 在归纳和演绎中探寻抽象的奥秘
+  text: 感受形式体系的演绎之理
   tagline: 即使你并不懂计算机！
   actions:
     - theme: brand
