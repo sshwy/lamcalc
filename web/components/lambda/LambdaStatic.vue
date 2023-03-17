@@ -19,19 +19,20 @@ try {
   error.value = e
 }
 
+
 </script>
 <template>
   <template v-if="block">
     <div class="lambda-exp-static-block">
       <div class="lambda-inner">
-        <ExpStatic v-if="exp" v-bind="exp" />
+        <ExpStatic v-if="exp" v-bind="exp" :bracket-level="0" />
         <span v-else>{{ error }}</span>
       </div>
     </div>
   </template>
   <template v-else>
     <span class="lambda-inline">
-      <ExpStatic v-if="exp" v-bind="exp" />
+      <ExpStatic v-if="exp" v-bind="exp" :bracket-level="0" />
       <span v-else>{{ error }}</span>
     </span>
   </template>

@@ -8,8 +8,8 @@ hero:
   # tagline: Presented by Sshwy
   actions:
     - theme: brand
-      text: Start Your Journey
-      link: /markdown-examples
+      text: Start Your Journey (Chinese)
+      link: /ch01-introduction
     - theme: alt
       text: Playground
       link: /playground
