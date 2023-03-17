@@ -37,6 +37,7 @@ body {
 }
 .lambda-inline {
   font-family: var(--vp-font-family-mono);
+  white-space: nowrap;
 }
 .lambda-inner {
   width: fit-content;

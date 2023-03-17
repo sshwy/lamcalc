@@ -39,8 +39,8 @@ const macros: {
   pattern: /{l}/g,
   replacer: () => 'λ'
 }, {
-  pattern: /L`(.*?)`/g,
-  replacer: (_, $1) => `<code>${$1}</code>`
+  pattern: /l`(.*?)`/g,
+  replacer: (_, $1) => `<LambdaStatic exp="${$1}" />`
 }]
 
 
