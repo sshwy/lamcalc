@@ -1,20 +1,20 @@
 #![warn(missing_docs)]
-//! <span class="feat-badge" style="color: chocolate; font-weight: bold; background: blanchedalmond; padding: 0 5px; border-radius: 5px; display: inline-block;">feature: wasm</span> WASM bindings for this library.
+//! <span class="feat-badge" style="color: chocolate; font-weight: bold; background: blanchedalmond; padding: 0 5px; border-radius: 5px; display: inline-block;">feature: wasm</span> interprete lambda expressions in browser
 use crate::parser::{self, Token};
-use exp::JsExp;
 use serde::Serialize;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use exp::JsExp;
 
 mod calculator;
-mod exp;
+pub mod exp;
 
 pub use calculator::Calculator;
 
 #[derive(Serialize)]
 struct ParseExpResult(JsExp, Vec<Token>);
 
-/// 解析一个 lambda 表达式
-/// 
+/// Parse Lambda expression
+///
 /// return ```(JsExp, Vec<Token>)```
 #[wasm_bindgen]
 pub fn parse_exp(lambda: &str) -> Result<JsValue, String> {

@@ -1,50 +1,62 @@
+//! Expression data for browser
 use serde::Serialize;
 
 use crate::{Error, Exp};
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
+/// variable data
 pub struct Var {
-    ident: String,
-    code: usize,
+    /// identifier
+    pub ident: String,
+    /// de bruijn code
+    pub code: usize,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
+/// abstraction data
 pub struct Abs {
-    ident: String,
-    body: Box<JsExp>,
-    // 是否在 beta redex 中
-    in_beta_redex: bool,
+    /// identifier
+    pub ident: String,
+    /// sub expression
+    pub body: Box<JsExp>,
+    /// whether it's in a beta-redex
+    pub in_beta_redex: bool,
 }
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
+/// application data
 pub struct App {
-    func: Box<JsExp>,
-    body: Box<JsExp>,
-    /// 对于 beta_redex，保存其 id，方便进行化简动作
-    beta_redex: Option<usize>,
+    /// the former sub expression
+    pub func: Box<JsExp>,
+    /// the latter sub expression
+    pub body: Box<JsExp>,
+    /// id of its beta_redex (greater than 0)
+    pub beta_redex: Option<usize>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
+/// typed data of Lambda expression
 pub enum InnerExp {
+    #[allow(missing_docs)]
     Var(Var),
+    #[allow(missing_docs)]
     Abs(Abs),
+    #[allow(missing_docs)]
     App(App),
 }
 
-/// 方便前端解析的表达式数据
-#[derive(Serialize, Debug)]
+/// Expression data in a fronend-friendly format
+#[derive(Serialize, Debug, Clone)]
 pub struct JsExp {
-    /// 是否被标记（一般用于显示发生变化的部分）
-    marked: bool,
-    /// 是否要加括号
-    parentheses: bool,
-    inner: InnerExp,
+    /// whether wrapping parentheses
+    pub parentheses: bool,
+    /// inner type of this expression
+    pub inner: InnerExp,
 }
 
 impl JsExp {
     fn init_exp(exp: &crate::Exp<String>) -> Self {
         match exp {
             crate::Exp::Var(v) => Self {
-                marked: false,
                 parentheses: false,
                 inner: InnerExp::Var(Var {
                     ident: v.0.clone(),
@@ -52,7 +64,6 @@ impl JsExp {
                 }),
             },
             crate::Exp::Abs(id, body) => Self {
-                marked: false,
                 parentheses: false,
                 inner: InnerExp::Abs(Abs {
                     ident: id.0.clone(),
@@ -61,7 +72,6 @@ impl JsExp {
                 }),
             },
             crate::Exp::App(func, body) => Self {
-                marked: false,
                 parentheses: false,
                 inner: InnerExp::App(App {
                     func: Box::new(Self::init_exp(func)),
@@ -112,6 +122,10 @@ impl JsExp {
 }
 
 impl Exp<String> {
+    /// Resolve beta-redex based on it's `display_exp`
+    ///
+    /// this operation requires mutable reference of `display_exp`
+    /// to mark the modified part
     pub(crate) fn reduce_beta_redex(
         &mut self,
         display_exp: &JsExp,
@@ -121,6 +135,7 @@ impl Exp<String> {
             if let Some(beta_redex) = app.beta_redex {
                 if beta_redex == id {
                     if self.beta_reduce() {
+                        // display_exp.marked = true;
                         return Ok(());
                     }
                     return Err(Error::InvalidRedex);

@@ -28,3 +28,6 @@ wasm = []
 
 [package.metadata.docs.rs]
 features = ["wasm"]
+
+[profile.release]
+lto = true
