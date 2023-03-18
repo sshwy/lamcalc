@@ -6,8 +6,10 @@ blank = @{ " "+ }
 /// 不会被忽略的换行
 newline = { NEWLINE }
 
+CJK = { HAN | HIRAGANA | KATAKANA | HANGUL | BOPOMOFO }
+
 /// 标识符，以字母或下划线开头，后面可以跟数字、字母或下划线
-ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+ident = @{ (ASCII_ALPHA | CJK | "_") ~ (ASCII_ALPHANUMERIC | CJK | "_")* }
 
 /// lambda 表达式
 exp = { app | bounded_exp | abs }

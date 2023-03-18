@@ -4,7 +4,7 @@ use serde::Serialize;
 
 /// Identifier of variables.
 ///
-/// Adopt [De Bruijn index](https://en.wikipedia.org/wiki/De_Bruijn_index) 
+/// Adopt [De Bruijn index](https://en.wikipedia.org/wiki/De_Bruijn_index)
 /// for the second field, where 0 is for free variables and others are for
 /// bounded/captured variables.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
@@ -13,7 +13,7 @@ pub struct Ident<T: Clone + Eq + Hash + ToString>(pub T, pub usize);
 /// Expression in Lambda Calculus.
 ///
 /// T represents the type of indentifiers.
-/// 
+///
 /// Formatting:
 ///
 /// - use `{}` for simple format
@@ -40,14 +40,21 @@ impl<T: Clone + Eq + Hash + ToString> Exp<T> {
         match self {
             Exp::Var(Ident(_, de)) => {
                 if de_index == *de {
+                    eprintln!("exp = {:#}", exp);
                     *self = exp.clone();
                 }
             }
             Exp::Abs(_, body) => {
-                if let Exp::Var(Ident(ident, code)) = exp {
-                    body.subst_de(de_index + 1, &Exp::Var(Ident(ident.clone(), *code + 1)));
-                }
-                body.subst_de(de_index + 1, exp);
+                let new_exp = if let Exp::Var(Ident(ident, code)) = exp {
+                    if *code > 0 {
+                        Exp::Var(Ident(ident.clone(), *code + 1))
+                    } else {
+                        exp.clone()
+                    }
+                } else {
+                    exp.clone()
+                };
+                body.subst_de(de_index + 1, &new_exp);
             }
             Exp::App(l, body) => {
                 l.subst_de(de_index, exp);
@@ -63,11 +70,11 @@ impl<T: Clone + Eq + Hash + ToString> Exp<T> {
                 if *code >= min_de {
                     *code = *code - 1;
                 }
-            },
+            }
             Exp::Abs(_, body) => {
                 body.lift(min_de + 1);
-            },
-            Exp::App(func, body) =>{
+            }
+            Exp::App(func, body) => {
                 func.lift(min_de);
                 body.lift(min_de);
             }
