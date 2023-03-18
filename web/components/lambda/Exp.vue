@@ -3,6 +3,7 @@ import Ident from './Ident.vue';
 import AbsHead from './AbsHead.vue';
 import AbsWrapper from './AbsWrapper.vue'
 import { computed, ref } from 'vue';
+import { useDebounceFn } from '@vueuse/shared';
 
 const props = defineProps<{
   marked: boolean
@@ -10,6 +11,7 @@ const props = defineProps<{
   bracketLevel: number
   inner: any
   redexTrigger?: () => void
+  lastRedex?: number
 }>()
 
 const emit = defineEmits<{
@@ -27,25 +29,32 @@ const hightlightBetaRedex = computed(() => props.inner.App?.beta_redex ? (enable
 
 // console.log(props)
 
+const onDropReduce = useDebounceFn((redex: number) => {
+  console.log('drop!', redex)
+  emit('beta-reduce', redex)
+}, 50)
+
 const classes = ref('')
 const highlight = (enable: boolean, redex: number) => {
-  console.log('highlight', enable, 'redex:', redex)
+  // console.log('highlight', enable, 'redex:', redex)
 
-  self.value.addEventListener('dragover', event => {
+  const onDragOver = (event: DragEvent) => {
     event.preventDefault() // prevent default to allow drop
-  })
-
-  self.value.addEventListener('drop', event => {
+  }
+  const onDrop = (event: DragEvent) => {
     event.preventDefault();
-    // console.log(event.target)
-    emit('beta-reduce', redex)
-  }, { once: true })
-
+    onDropReduce(redex)
+  }
 
   if (enable) {
     classes.value = 'lambda-highlight'
+
+    self.value.addEventListener('dragover', onDragOver)
+    self.value.addEventListener('drop', onDrop, { once: true })
   } else {
     classes.value = ''
+    self.value.removeEventListener('dragover', onDragOver)
+    self.value.removeEventListener('drop', onDrop)
   }
 }
 
@@ -65,12 +74,15 @@ defineExpose({
         <Ident :ident="inner.Abs.ident" :de="0" />
       </AbsHead>
       <span class="lambda-dot">.</span>
-      <Exp @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.Abs.body" :bracket-level="nextLevel" />
+      <Exp :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.Abs.body"
+        :bracket-level="nextLevel" />
     </AbsWrapper>
-    <span v-else-if="inner.App" class="lambda-app">
-      <Exp @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.App.func" :bracket-level="nextLevel" :redex-trigger="hightlightBetaRedex" />
+    <span v-else-if="inner.App" :class="['lambda-app', lastRedex && inner.App.beta_redex === lastRedex ? 'lambda-redex' : '']">
+      <Exp :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.App.func"
+        :bracket-level="nextLevel" :redex-trigger="hightlightBetaRedex" />
       <span class="lambda-blank"> {{ " " }} </span>
-      <Exp @beta-reduce="id => $emit('beta-reduce', id)" ref="param" v-bind="inner.App.body" :bracket-level="nextLevel" />
+      <Exp :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" ref="param" v-bind="inner.App.body"
+        :bracket-level="nextLevel" />
     </span>
     <span v-else-if="inner.Var" class="lambda-var">
       <Ident :ident="inner.Var.ident" :de="inner.Var.code" />

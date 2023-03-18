@@ -4,6 +4,7 @@ import Exp from './Exp.vue';
 
 const props = defineProps<{
   exp: any
+  lastRedex?: number
 }>()
 
 const lastBetaReduce = ref(0)
@@ -27,7 +28,7 @@ const onReduce = (id: number) => {
 <template>
   <div class="lambda-exp">
     <div class="lambda-inner">
-      <Exp v-bind="exp" :bracket-level="0" @beta-reduce="onReduce" />
+      <Exp :last-redex="lastRedex" v-bind="exp" :bracket-level="0" @beta-reduce="onReduce" />
     </div>
   </div>
 </template>

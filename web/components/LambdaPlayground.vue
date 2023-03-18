@@ -7,29 +7,29 @@ import { useDebounceFn } from '@vueuse/core'
 import * as lamcalc from 'lamcalc'
 const { Calculator } = lamcalc;
 
-const calc = new Calculator()
-
 // const str = ref(`(\\x.\\y.x y x) (\\x.\\y.x)`)
 const inputContent = ref('\\f. (\\x. f (x x)) \\x. f (x x)')
-const startExp = ref(calc.init(inputContent.value));
-const steps = ref([])
+
+const calc = new Calculator()
+calc.init(inputContent.value);
+
+const steps = ref(calc.history())
 
 const error = ref('');
 
 const initWithStr = useDebounceFn((s: string) => {
-  startExp.value = calc.init(s)
+  calc.init(s)
+  steps.value = calc.history()
 }, 500)
 
 const onInput = (event: Event) => {
   initWithStr(inputContent.value);
-  steps.value = []
 }
 
 const onReduce = (step: number, id: number) => {
   console.log('reduce', step, id)
-  let res = calc.beta_reduce(step, id)
-  steps.value = steps.value.slice(0, step);
-  steps.value.push(res)
+  calc.beta_reduce(step, id)
+  steps.value = calc.history()
 }
 
 </script>
@@ -39,10 +39,11 @@ const onReduce = (step: number, id: number) => {
     <input type="text" v-model="inputContent" placeholder="enter your lambda" @input="onInput" />
   </div>
   <pre v-if="error" class="error">{{ error }}</pre>
-  <LambdaExp :exp="startExp" @beta-reduce="id => onReduce(0, id)" />
-  <template v-for="[exp, id], step_id in steps" :key="id">
-    <LambdaExp :exp="exp" @beta-reduce="id => onReduce(step_id + 1, id)" />
-  </template>
+  <!-- <LambdaExp :exp="startExp" @beta-reduce="id => onReduce(0, id)" /> -->
+  <TransitionGroup name="lams">
+    <LambdaExp v-for="[exp, betaRedex, id], step_id in steps" :key="id" :last-redex="betaRedex" :exp="exp"
+      @beta-reduce="id => onReduce(step_id, id)" />
+  </TransitionGroup>
 </template>
 
 <style>
@@ -69,5 +70,22 @@ const onReduce = (step: number, id: number) => {
   font-size: 16px;
   font-family: 'Courier New', Courier, monospace;
   min-height: 16px;
+}
+
+.lams-move,
+.lams-enter-active {
+  transition: all 0.5s ease;
+}
+
+.lams-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.lams-leave-active {
+  position: absolute;
+  opacity: 0;
 }
 </style>
