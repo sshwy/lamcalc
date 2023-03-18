@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Calculator } from 'lamcalc';
+import { parse_exp } from 'lamcalc';
 import { ref } from 'vue';
 import ExpStatic from './ExpStatic.vue'
 
@@ -8,31 +8,20 @@ const props = defineProps<{
   exp: string
 }>()
 
-const calc = new Calculator()
-const exp = ref(null)
-const error = ref(null)
-
-try {
-  exp.value = calc.init(props.exp)
-} catch (e) {
-  error.value = e
-}
-
+const exp = ref(parse_exp(props.exp)[0])
 
 </script>
 <template>
   <template v-if="block">
     <div class="lambda-exp-static-block">
       <div class="lambda-inner">
-        <ExpStatic v-if="exp" v-bind="exp" :bracket-level="0" />
-        <span v-else>{{ error }}</span>
+        <ExpStatic v-bind="exp" :bracket-level="0" />
       </div>
     </div>
   </template>
   <template v-else>
     <span class="lambda-inline">
-      <ExpStatic v-if="exp" v-bind="exp" :bracket-level="0" />
-      <span v-else>{{ error }}</span>
+      <ExpStatic v-bind="exp" :bracket-level="0" />
     </span>
   </template>
 </template>
