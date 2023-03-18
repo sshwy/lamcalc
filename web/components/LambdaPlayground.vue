@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LambdaExp } from './lambda';
+import LambdaInteractive from './LambdaInteractive.vue';
 import { ref } from 'vue';
 import { useDebounceFn } from '@vueuse/core'
 
@@ -9,7 +10,7 @@ const { Calculator } = lamcalc;
 
 // const str = ref(`(\\x.\\y.x y x) (\\x.\\y.x)`)
 const inputContent = ref('\\f. (\\x. f (x x)) \\x. f (x x)')
-
+const expStr = ref(inputContent.value)
 const calc = new Calculator()
 calc.init(inputContent.value);
 
@@ -18,8 +19,15 @@ const steps = ref(calc.history())
 const error = ref('');
 
 const initWithStr = useDebounceFn((s: string) => {
-  calc.init(s)
-  steps.value = calc.history()
+  expStr.value = s
+  console.log('init!', s)
+  try {
+    calc.init(s)
+    steps.value = calc.history()
+    error.value = ''
+  } catch (e) {
+    error.value = e
+  }
 }, 500)
 
 const onInput = (event: Event) => {
@@ -38,12 +46,12 @@ const onReduce = (step: number, id: number) => {
   <div class="input-wrapper">
     <input type="text" v-model="inputContent" placeholder="enter your lambda" @input="onInput" />
   </div>
-  <pre v-if="error" class="error">{{ error }}</pre>
-  <!-- <LambdaExp :exp="startExp" @beta-reduce="id => onReduce(0, id)" /> -->
-  <TransitionGroup name="lams">
+  <LambdaInteractive :exp="expStr" />
+  <!-- <pre v-if="error" class="error">{{ error }}</pre>
+  <TransitionGroup v-else name="lams">
     <LambdaExp v-for="[exp, betaRedex, id], step_id in steps" :key="id" :last-redex="betaRedex" :exp="exp"
       @beta-reduce="id => onReduce(step_id, id)" />
-  </TransitionGroup>
+  </TransitionGroup> -->
 </template>
 
 <style>
@@ -70,22 +78,5 @@ const onReduce = (step: number, id: number) => {
   font-size: 16px;
   font-family: 'Courier New', Courier, monospace;
   min-height: 16px;
-}
-
-.lams-move,
-.lams-enter-active {
-  transition: all 0.5s ease;
-}
-
-.lams-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-/* ensure leaving items are taken out of layout flow so that moving
-   animations can be calculated correctly. */
-.lams-leave-active {
-  position: absolute;
-  opacity: 0;
 }
 </style>

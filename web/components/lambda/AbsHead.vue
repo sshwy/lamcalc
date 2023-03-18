@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /// AbsHead 可以控制 abstraction 能否拖动
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-const self = ref<HTMLElement>(null)
+const self = ref<HTMLElement | null>(null)
 
 const props = defineProps<{
   enableDrag: () => void
@@ -21,10 +21,10 @@ const disableDragTrigger = () => {
 }
 
 onMounted(() => {
-  self.value.addEventListener('mousedown', enableDragTrigger)
+  self.value!.addEventListener('mousedown', enableDragTrigger)
 })
 onBeforeUnmount(() => {
-  self.value.removeEventListener('mousedown', enableDragTrigger)
+  self.value!.removeEventListener('mousedown', enableDragTrigger)
 })
 </script>
 

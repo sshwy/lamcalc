@@ -17,7 +17,7 @@ function render_tokens(tokens: { kind: string, data: string }[]) {
       case 'DotSym': return `<span class="lambda-dot">.</span>`;
       case 'LPar': return `<span class="lambda-bracket-${(bracketLevel++) % 3}">(</span>`;
       case 'RPar': return `<span class="lambda-bracket-${(--bracketLevel) % 3}">)</span>`;
-      case 'Ident': return `<span class="lambda-var">${tk.data}</span>`;
+      case 'Ident': return `<span class="lambda-ident">${tk.data}</span>`;
       default: return tk.data;
     }
   }).join("")

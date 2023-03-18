@@ -5,7 +5,7 @@ const props = defineProps<{
   redexTrigger?: (enable: boolean) => void
 }>()
 
-const self = ref<HTMLElement>(null)
+const self = ref<HTMLElement | null>(null)
 
 const startDrag = () => {
   const trigger = props.redexTrigger
@@ -24,11 +24,13 @@ const startDrag = () => {
 
 const enableDrag = () => {
   console.debug('enable')
+  if (!self.value) throw new Error("no self ref")
   self.value.addEventListener('dragstart', startDrag);
   self.value.draggable = true
 }
 const disableDrag = () => {
   console.debug('disable')
+  if (!self.value) throw new Error("no self ref")
   self.value.removeEventListener('dragstart', startDrag);
   self.value.draggable = false
 }

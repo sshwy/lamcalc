@@ -3,7 +3,6 @@ import Ident from './Ident.vue';
 import { computed } from 'vue';
 
 const props = defineProps<{
-  marked: boolean
   parentheses: boolean
   bracketLevel: number
   inner: any

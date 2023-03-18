@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { parse_exp } from 'lamcalc';
 import { ref } from 'vue';
-import ExpStatic from './ExpStatic.vue'
+import ExpStatic from './lambda/ExpStatic.vue'
 
 const props = defineProps<{
   block?: boolean

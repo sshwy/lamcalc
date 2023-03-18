@@ -4,6 +4,7 @@ defineProps<{
   de: number
 }>()
 </script>
+
 <template>
   <span class="lambda-ident" :title="de.toString()">{{ ident }}</span>
 </template>

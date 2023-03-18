@@ -6,7 +6,6 @@ import { computed, ref } from 'vue';
 import { useDebounceFn } from '@vueuse/shared';
 
 const props = defineProps<{
-  marked: boolean
   parentheses: boolean
   bracketLevel: number
   inner: any
@@ -20,8 +19,8 @@ const emit = defineEmits<{
 
 const nextLevel = computed(() => props.bracketLevel + (props.parentheses ? 1 : 0))
 
-const self = ref<HTMLElement>(null)
-const param = ref<HTMLElement>(null)
+const self = ref<HTMLElement | null>(null)
+const param = ref<HTMLElement | null>(null)
 
 const hightlightBetaRedex = computed(() => props.inner.App?.beta_redex ? (enable: boolean) => {
   (param.value as any).highlight(enable, props.inner.App.beta_redex)
@@ -45,6 +44,7 @@ const highlight = (enable: boolean, redex: number) => {
     event.preventDefault();
     onDropReduce(redex)
   }
+  if (!self.value) throw new Error('no self ref')
 
   if (enable) {
     classes.value = 'lambda-highlight'
@@ -78,10 +78,10 @@ defineExpose({
         :bracket-level="nextLevel" />
     </AbsWrapper>
     <span v-else-if="inner.App" :class="['lambda-app', lastRedex && inner.App.beta_redex === lastRedex ? 'lambda-redex' : '']">
-      <Exp :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.App.func"
+      <Exp class="lambda-app-func" :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.App.func"
         :bracket-level="nextLevel" :redex-trigger="hightlightBetaRedex" />
       <span class="lambda-blank"> {{ " " }} </span>
-      <Exp :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" ref="param" v-bind="inner.App.body"
+      <Exp class="lambda-app-body" :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" ref="param" v-bind="inner.App.body"
         :bracket-level="nextLevel" />
     </span>
     <span v-else-if="inner.Var" class="lambda-var">
