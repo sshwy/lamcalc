@@ -4,13 +4,13 @@ fn main() -> Result<(), Error> {
     // parse single expression
     let (tt, _) = parser::parse_exp(r"\x. \y. x")?;
 
-    // parse defination statement
+    // parse definition statement
     let (ident, ff, _) = parser::parse_def(r"ff = \x. \y. y")?;
     assert_eq!(ident, "ff");
 
     println!("ff = {}", ff);
 
-    // parse multiple definations
+    // parse multiple definitions
     let (map, _) = parser::parse_file(r##"
         // and
         and = \x. \y. x y x

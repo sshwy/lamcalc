@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/sshwy/lamcalc"
 keywords = ["lambda_calculus", "De_Bruijn_encoding", "parser"]
 categories = ["parser-implementations"]
-exclude = ["/pkg", "/web"]
+exclude = ["/pkg", "/web", "/scripts"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

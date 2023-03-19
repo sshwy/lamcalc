@@ -31,6 +31,24 @@ pub enum Exp<T: Clone + Eq + Hash> {
 }
 
 impl<T: Clone + Eq + Hash> Exp<T> {
+    /// Substitute free variables with expression
+    pub fn subst_unbounded(&mut self, name: &T, exp: &Exp<T>) -> &mut Self {
+        match self {
+            Exp::Var(Ident(ident, de)) => {
+                if name == ident && *de == 0 {
+                    *self = exp.clone();
+                }
+            }
+            Exp::Abs(_, body) => {
+                body.subst_unbounded(name, exp);
+            }
+            Exp::App(l, body) => {
+                l.subst_unbounded(name, exp);
+                body.subst_unbounded(name, exp);
+            }
+        };
+        self
+    }
     /// 进行标识符的替换
     /// 在不允许表达式中出现自由变量的情况下（遇到了就忽略），被替换的变量
     /// 的 de_bruijn_index 总是 >0，并且我们总是将某个 abstraction 的参数
