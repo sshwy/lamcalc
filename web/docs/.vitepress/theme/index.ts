@@ -6,6 +6,7 @@ import 'katex/dist/katex.min.css'
 import LambdaStatic from '../../../components/LambdaStatic.vue'
 import LambdaRaw from '../../../components/LambdaRaw.vue'
 import LambdaInteractive from '../../../components/LambdaInteractive.vue'
+import LambdaDef from '../../../components/LambdaDef.vue'
 
 export default {
   extends: DefaultTheme,
@@ -14,5 +15,6 @@ export default {
     ctx.app.component('LambdaStatic', LambdaStatic)
     ctx.app.component('LambdaRaw', LambdaRaw)
     ctx.app.component('LambdaInteractive', LambdaInteractive)
+    ctx.app.component('LambdaDef', LambdaDef)
   }
 }

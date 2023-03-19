@@ -2,15 +2,21 @@
 import Ident from './Ident.vue';
 import AbsHead from './AbsHead.vue';
 import AbsWrapper from './AbsWrapper.vue'
-import { computed, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { useDebounceFn } from '@vueuse/shared';
+import { replaceNameKey } from '../LambdaInteractive.vue';
 
 const props = defineProps<{
   parentheses: boolean
   bracketLevel: number
   inner: any
   redexTrigger?: () => void
-  lastRedex?: number
+  decoration: {
+    lastRedex?: number
+    replacedName?: string
+    names: string[]
+    step_id: number,
+  }
 }>()
 
 const emit = defineEmits<{
@@ -62,6 +68,13 @@ defineExpose({
   highlight
 })
 
+const trigger = inject(replaceNameKey)
+
+const onVarClick = (name: string) => {
+  if (props.decoration.names.includes(name)) {
+    if (trigger) trigger(name, props.decoration.step_id)
+  }
+}
 </script>
 
 <template>
@@ -74,17 +87,19 @@ defineExpose({
         <Ident :ident="inner.Abs.ident" :de="0" />
       </AbsHead>
       <span class="lambda-dot">.</span>
-      <Exp :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.Abs.body"
+      <Exp :decoration="decoration" @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.Abs.body"
         :bracket-level="nextLevel" />
     </AbsWrapper>
-    <span v-else-if="inner.App" :class="['lambda-app', lastRedex && inner.App.beta_redex === lastRedex ? 'lambda-redex' : '']">
-      <Exp class="lambda-app-func" :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" v-bind="inner.App.func"
-        :bracket-level="nextLevel" :redex-trigger="hightlightBetaRedex" />
+    <span v-else-if="inner.App"
+      :class="['lambda-app', decoration.lastRedex && inner.App.beta_redex === decoration.lastRedex ? 'lambda-redex' : '']">
+      <Exp class="lambda-app-func" :decoration="decoration" @beta-reduce="id => $emit('beta-reduce', id)"
+        v-bind="inner.App.func" :bracket-level="nextLevel" :redex-trigger="hightlightBetaRedex" />
       <span class="lambda-blank"> {{ " " }} </span>
-      <Exp class="lambda-app-body" :last-redex="lastRedex" @beta-reduce="id => $emit('beta-reduce', id)" ref="param" v-bind="inner.App.body"
-        :bracket-level="nextLevel" />
+      <Exp class="lambda-app-body" :decoration="decoration" @beta-reduce="id => $emit('beta-reduce', id)" ref="param"
+        v-bind="inner.App.body" :bracket-level="nextLevel" />
     </span>
-    <span v-else-if="inner.Var" class="lambda-var">
+    <span v-else-if="inner.Var" :class="[decoration.names.includes(inner.Var.ident) ?
+      'lambda-const' : 'lambda-var']" @click="onVarClick(inner.Var.ident)">
       <Ident :ident="inner.Var.ident" :de="inner.Var.code" />
     </span>
 

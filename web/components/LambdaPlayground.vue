@@ -8,15 +8,17 @@ import { useDebounceFn } from '@vueuse/core'
 import * as lamcalc from 'lamcalc'
 const { Calculator } = lamcalc;
 
-// const str = ref(`(\\x.\\y.x y x) (\\x.\\y.x)`)
-const inputContent = ref('\\f. (\\x. f (x x)) \\x. f (x x)')
+const inputContent = ref('Y I')
 const expStr = ref(inputContent.value)
 const calc = new Calculator()
 calc.init(inputContent.value);
 
 const steps = ref(calc.history())
-
 const error = ref('');
+const file = `
+Y = \\f. (\\x. f (x x)) \\x. f (x x)
+I = \\z. z
+`
 
 const initWithStr = useDebounceFn((s: string) => {
   expStr.value = s
@@ -46,12 +48,7 @@ const onReduce = (step: number, id: number) => {
   <div class="input-wrapper">
     <input type="text" v-model="inputContent" placeholder="enter your lambda" @input="onInput" />
   </div>
-  <LambdaInteractive :exp="expStr" />
-  <!-- <pre v-if="error" class="error">{{ error }}</pre>
-  <TransitionGroup v-else name="lams">
-    <LambdaExp v-for="[exp, betaRedex, id], step_id in steps" :key="id" :last-redex="betaRedex" :exp="exp"
-      @beta-reduce="id => onReduce(step_id, id)" />
-  </TransitionGroup> -->
+  <LambdaInteractive :exp="expStr" :file="file" />
 </template>
 
 <style>

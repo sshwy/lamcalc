@@ -3,7 +3,12 @@ import Exp from './Exp.vue';
 
 defineProps<{
   exp: any
-  lastRedex?: number
+  decoration: {
+    lastRedex?: number
+    replacedName?: string
+    names: string[]
+    step_id: number,
+  }
 }>()
 
 const emit = defineEmits<{
@@ -18,7 +23,7 @@ const onReduce = (id: number) => {
 <template>
   <div class="lambda-exp">
     <div class="lambda-inner">
-      <Exp :last-redex="lastRedex" v-bind="exp" :bracket-level="0" @beta-reduce="onReduce" />
+        <Exp :decoration="decoration" v-bind="exp" :bracket-level="0" @beta-reduce="onReduce" />
+      </div>
     </div>
-  </div>
 </template>

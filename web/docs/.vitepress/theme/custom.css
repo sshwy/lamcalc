@@ -16,6 +16,7 @@ body {
   --vp-c-lambda-ref: #0070c1;
   --vp-c-lambda-hlbg: #af00db29;
   --vp-c-lambda-redex: #e5ebf1;
+  --vp-c-lambda-const: #0070c1;
 }
 
 :root.dark {
@@ -27,17 +28,18 @@ body {
   --vp-c-lambda-bracket-2: #179fff;
   --vp-c-lambda-ref: #4fc1ff;
   --vp-c-lambda-redex: #474747;
+  --vp-c-lambda-const: #4fc1ff;
 }
 
 .lambda-exp-static-block {
   font-family: var(--vp-font-family-mono);
-  font-size: 20px;
+  font-size: 1.25em;
 }
 
 .lambda-exp {
   font-family: var(--vp-font-family-mono);
-  padding: 8px 16px;
-  font-size: 20px;
+  padding: 0.4em 0.8em;
+  font-size: 1.25em;
 }
 
 .lambda-inline {
@@ -99,12 +101,20 @@ body {
   border-radius: 6px;
 }
 
+.lambda-redex > .lambda-app-func,
+.lambda-redex > .lambda-app-body {
+  background: var(--vp-c-lambda-redex);
+}
+
 .lambda-ident {
   color: var(--vp-c-lambda-ident);
 }
 
-.lambda-redex > .lambda-app-func,
-.lambda-redex > .lambda-app-body {
+.lambda-const .lambda-ident {
+  color: var(--vp-c-lambda-const);
+  cursor: pointer;
+}
+.lambda-const .lambda-ident:hover {
   background: var(--vp-c-lambda-redex);
 }
 
