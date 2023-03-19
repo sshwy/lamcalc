@@ -1,4 +1,4 @@
-use crate::{Exp, Error};
+use crate::{Error, Exp};
 use std::hash::Hash;
 
 /// maximum number of reductions in a simplification
@@ -6,14 +6,14 @@ pub const SIMPLIFY_LIMIT: i32 = 1 << 10;
 
 impl<T> Exp<T>
 where
-    T: Clone + Eq + Hash + ToString,
+    T: Clone + Eq + Hash,
 {
     /// Simplify repeatedly using beta-reduction in normal order
     /// for at most [`SIMPLIFY_LIMIT`] times.
     pub fn simplify(&mut self) -> Result<&mut Self, Error> {
         for _ in 0..SIMPLIFY_LIMIT {
             if !self.eval_normal_order() {
-                return Ok(self)
+                return Ok(self);
             }
         }
         Err(Error::SimplifyLimitExceeded)

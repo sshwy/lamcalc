@@ -12,7 +12,7 @@
 //! ```rust
 #![doc = include_str!("../examples/parser.rs")]
 //! ```
-//! 
+//!
 //! ## Example: Y Combinator
 //!
 //! ```rust
@@ -36,23 +36,31 @@ pub use exp::Ident;
 #[cfg(test)]
 mod tests {
     use crate::{lambda, Error};
+    use super::{Exp, Ident};
 
     #[test]
-    fn display() {
-        use super::{Exp, Ident};
+    fn test_display() {
         println!(
             "{}",
             Exp::Abs(
-                Ident("x", 0),
+                Ident(String::from("x"), 0),
                 Box::new(Exp::App(
-                    Box::new(Exp::Var(Ident("y", 0))),
-                    Box::new(Exp::Var(Ident("x", 2)))
+                    Box::new(Exp::Var(Ident(String::from("y"), 0))),
+                    Box::new(Exp::Var(Ident(String::from("x"), 2)))
                 ))
             )
         )
     }
     #[test]
-    fn macros() {
+    fn test_clone() {
+        let mut tt = lambda!(x. y. x).purify();
+        let mut ff = tt.clone();
+        ff.into_body().into_body().into_ident().1 = 1;
+        assert_eq!(tt.into_body().into_body().into_ident().1, 2);
+        println!("tt = {}, ff = {}", tt, ff);
+    }
+    #[test]
+    fn test_macros() {
         let l_true = lambda!(x.y.x);
         let l_false = lambda!(x.y.y);
         let y_comb = lambda!(f.(x. f (x x)) (x. f (x x)));
@@ -71,7 +79,7 @@ mod tests {
         println!("{}\n{}", test_app, test_app2);
     }
     #[test]
-    fn eval() {
+    fn test_eval() {
         let tt = lambda!(x. (y. x));
         let and = lambda!(x. y. x y x);
         // let or = lambda!(x. y. x y [tt]);
@@ -86,27 +94,18 @@ mod tests {
         assert_eq!(res.to_string(), "λx. λy. x");
     }
     #[test]
-    fn nat() -> Result<(), Error> {
+    fn test_nat() -> Result<(), Error> {
         let zero = lambda!(s. (z. z));
         let suc = lambda!(n. s. z. s (n s z));
         let mut plus = lambda!(n. m. n {suc} m);
         plus.simplify()?;
-
-        // n + m = ?
-        // n 的本质是什么？也就是说 Nat 类型是什么？
-        // Nat: S -> Z -> R 是一个高阶函数。
-        // R 是什么的类型？
-        // zero: s. z. z。故 zero：S -> Z -> Z。
-        // suc: Nat -> Nat = Nat -> S -> Z -> R
-        // 则带入 zero 可以发现 Nat = S -> Z -> Z。
-        // S: Z -> Z
 
         let mut nats = vec![zero.clone()];
         for i in 1..10 {
             let x = nats.last().unwrap();
             let mut sx = lambda!({suc} {x});
             sx.simplify()?;
-            eprintln!("{} = {:-}", i, sx);
+            eprintln!("{} = {}", i, sx.purify());
             nats.push(sx);
         }
         let mut test = lambda!({plus} {nats[4]} {nats[3]});
@@ -114,14 +113,6 @@ mod tests {
         println!("test = {:#}", test);
 
         assert_eq!(test.to_string(), nats[7].to_string());
-        Ok(())
-        // println!("one = {:-}", nats[1]);
-    }
-    #[test]
-    fn y_comb() -> Result<(), Error> {
-        let mut y_comb = lambda!(f.(x. f (x x)) (x. f (x x)));
-        eprintln!("{}", y_comb.simplify().unwrap_err()); // lamcalc::Error::SimplifyLimitExceeded
-        eprintln!("y_comb = {:-}", y_comb);
         Ok(())
     }
 }

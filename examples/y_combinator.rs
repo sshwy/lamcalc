@@ -8,7 +8,7 @@ fn main() -> Result<(), Error> {
     let suc = lambda!(n. f. x. f (n f x));
     let prev = lambda!(n. f. x. n (g. h. h (g f)) (u. x) (u. u));
     let mut nats = vec![zero.clone()];
-    for i in 1..30 {
+    for i in 1..10 {
         let sx = lambda!({suc} {nats[i - 1]}).simplify()?.to_owned();
         nats.push(sx);
         assert_eq!(
@@ -16,25 +16,30 @@ fn main() -> Result<(), Error> {
             { &nats[i - 1] }.to_string()
         );
     }
+
+    // utilities
     let mul = lambda!(n. m. f. x. n (m f) x);
-
-    let mut y = lambda!(f. (x. f (x x)) (x. f (x x)));
-
-    let if_n_is_zero = lambda!(n.n(w.x.y.y)(x.y.x));
+    let if_n_is_zero = lambda!(n. n (w. x. y. y) (x. y. x));
 
     assert_eq!(
         lambda!({if_n_is_zero} {nats[0]} {nats[2]} {nats[1]} )
             .simplify()?
-            .to_string(),
-        nats[2].to_string()
+            .purify(),
+        nats[2].purify()
     );
 
+    // Y combinator
+    let mut y = lambda!(f. (x. f (x x)) (x. f (x x)));
+
+    // factorial
     let fact = lambda!(y. n. {if_n_is_zero} n (f. x. f x) ({mul} n (y ({prev} n))));
     let y_fact = lambda!({y} {fact});
 
-    let res = lambda!({y_fact} {nats[3]}).simplify()?.to_owned();
-    assert_eq!(res.to_string(), nats[6].to_string());
+    let res = lambda!({y_fact} {nats[3]}).purify().simplify()?.to_owned();
+    println!("{}", res.to_string());
+    assert_eq!(res, nats[6].purify());
 
+    // if you try to simplify Y combinator ...
     eprintln!("simplify y: {}", y.simplify().unwrap_err()); // lamcalc::Error::SimplifyLimitExceeded
 
     Ok(())
