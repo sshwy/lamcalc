@@ -20,7 +20,7 @@ fn main () -> Result<(), Error> {
     // multiple printing format
     println!("and = {}", and);   // print lambda
     println!("and = {:#}", and); // lambda with De Bruijn index
-    println!("and = {:-}", and); // De Bruijn encoding
+    println!("and = {}", and.purify()); // De Bruijn encoding
 
     // use braces to refer to previously defined lambda
     let mut and_f_t = lambda!({and} {ff} {tt}); 
