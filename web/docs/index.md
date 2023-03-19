@@ -1,7 +1,7 @@
 ---
 # https://vitepress.dev/reference/default-theme-home-page
 layout: home
-title: Home
+title: 首页
 hero:
   name: 'λ-Calculus: 道生万物'
   text: 感受形式体系的演绎之理

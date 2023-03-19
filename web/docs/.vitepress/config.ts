@@ -72,6 +72,7 @@ export default defineConfig({
         items: [
           { text: '梦的开始', link: '/ch01-intro' },
           { text: '函数与符号', link: '/ch02-func' },
+          { text: '等价与规约', link: '/ch03-redex' },
         ],
       },
       { text: '在线演绎 λ-Calculus', link: '/playground' },
