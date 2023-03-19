@@ -283,6 +283,8 @@ mod tests {
         assert_eq!(tks_str(&tks), s);
         assert_eq!(exp.to_string(), lambda!(x. (x x) (x x)).to_string());
 
+        assert!(parse_exp(r"( x \x.").is_err());
+
         Ok(())
     }
     #[test]
@@ -293,6 +295,8 @@ mod tests {
         assert_eq!(name, "tt");
         assert_eq!(tks_str(&tks), s);
         assert_eq!(tt.to_string(), lambda!(x.y.x).to_string());
+
+        assert!(parse_def(" = x.x").is_err());
 
         Ok(())
     }
@@ -313,6 +317,8 @@ mod tests {
 
         assert_eq!(res["Y"].to_string(), y_comb.to_string());
         assert_eq!(tks_str(&tks), lambda);
+
+        assert!(parse_file(" = x.x").is_err());
 
         dbg!(tks);
 

@@ -2,7 +2,7 @@ use crate::{Exp, Error};
 use std::hash::Hash;
 
 /// maximum number of reductions in a simplification
-pub const SIMPLIFY_LIMIT: i32 = 1 << 7;
+pub const SIMPLIFY_LIMIT: i32 = 1 << 10;
 
 impl<T> Exp<T>
 where
@@ -24,7 +24,7 @@ where
     /// the body of an abstraction before the arguments are reduced.
     ///
     /// return `false` if nothing changes, otherwise `true`.
-    pub(crate) fn eval_normal_order(&mut self) -> bool {
+    pub fn eval_normal_order(&mut self) -> bool {
         if self.beta_reduce() {
             return true;
         }

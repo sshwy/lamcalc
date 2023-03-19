@@ -91,11 +91,11 @@ macro_rules! lambda {
     };
     // variable
     [$v:ident] => {
-        $crate::builder::unbounded_var::<&str>(stringify!($v))
+        $crate::builder::unbounded_var::<String>(String::from(stringify!($v)))
     };
     // abstraction
     [$v:ident.$( $t:tt )+] => {
-        $crate::builder::abs(stringify!($v), lambda![$( $t )+])
+        $crate::builder::abs(String::from(stringify!($v)), lambda![$( $t )+])
     };
     // application
     [$l:tt $( $t:tt )+] => {

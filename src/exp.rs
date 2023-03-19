@@ -36,28 +36,20 @@ impl<T: Clone + Eq + Hash + ToString> Exp<T> {
     /// 在不允许表达式中出现自由变量的情况下（遇到了就忽略），被替换的变量
     /// 的 de_bruijn_index 总是 >0，并且我们总是将某个 abstraction 的参数
     /// 进行替换。因此只用记 de_bruijn_index 即可。
-    fn subst_de(&mut self, de_index: usize, exp: &Exp<T>) -> &mut Self {
+    fn subst_de(&mut self, de_index: usize, exp: Exp<T>) -> &mut Self {
         match self {
             Exp::Var(Ident(_, de)) => {
-                if de_index == *de {
-                    eprintln!("exp = {:#}", exp);
+                if de_index == *de { // eprintln!("exp = {:#}", exp);
                     *self = exp.clone();
                 }
             }
             Exp::Abs(_, body) => {
-                let new_exp = if let Exp::Var(Ident(ident, code)) = exp {
-                    if *code > 0 {
-                        Exp::Var(Ident(ident.clone(), *code + 1))
-                    } else {
-                        exp.clone()
-                    }
-                } else {
-                    exp.clone()
-                };
-                body.subst_de(de_index + 1, &new_exp);
+                let mut exp = exp.clone();
+                exp.push(0);
+                body.subst_de(de_index + 1, exp);
             }
             Exp::App(l, body) => {
-                l.subst_de(de_index, exp);
+                l.subst_de(de_index, exp.clone());
                 body.subst_de(de_index, exp);
             }
         };
@@ -80,6 +72,22 @@ impl<T: Clone + Eq + Hash + ToString> Exp<T> {
             }
         }
     }
+    /// 将当前表达式进行抽象，或者放入某个抽象的子表达式，
+    /// 这会导致被外部捕获的变量 的 de bruijn index + 1
+    fn push(&mut self, cur_de: usize) {
+        match self {
+            Exp::Var(Ident(_, code)) => {
+                if *code > cur_de {
+                    *code = *code + 1;
+                }
+            }
+            Exp::Abs(_, body) => body.push(cur_de + 1),
+            Exp::App(func, body) => {
+                func.push(cur_de);
+                body.push(cur_de);
+            },
+        }
+    }
     fn unwrap_abs(&mut self) {
         if let Exp::Abs(_, body) = self {
             *self = *body.clone();
@@ -94,7 +102,7 @@ impl<T: Clone + Eq + Hash + ToString> Exp<T> {
                 is_redex = true;
             }
             if is_redex {
-                func.subst_de(0, &body);
+                func.subst_de(0, *body.to_owned());
                 func.lift(1);
                 func.unwrap_abs();
                 *self = *func.clone();
@@ -180,7 +188,7 @@ mod tests {
         let and = lambda!(x. y. x y x);
 
         let mut e = and.clone();
-        e.subst_de(0, &tt);
+        e.subst_de(0, tt);
         assert_eq!(
             format!("{:#}", e),
             "λx. λy. ((λx. λy. x<2>) y<1>) λx. λy. x<2>"

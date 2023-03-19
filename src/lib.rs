@@ -12,6 +12,12 @@
 //! ```rust
 #![doc = include_str!("../examples/parser.rs")]
 //! ```
+//! 
+//! ## Example: Y Combinator
+//!
+//! ```rust
+#![doc = include_str!("../examples/y_combinator.rs")]
+//! ```
 
 #[doc(hidden)]
 pub mod builder;
@@ -114,7 +120,7 @@ mod tests {
     #[test]
     fn y_comb() -> Result<(), Error> {
         let mut y_comb = lambda!(f.(x. f (x x)) (x. f (x x)));
-        y_comb.simplify().unwrap_err(); // 无限递归
+        eprintln!("{}", y_comb.simplify().unwrap_err()); // lamcalc::Error::SimplifyLimitExceeded
         eprintln!("y_comb = {:-}", y_comb);
         Ok(())
     }
