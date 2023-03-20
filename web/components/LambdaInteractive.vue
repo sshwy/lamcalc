@@ -67,11 +67,11 @@ export const betaReduceKey = Symbol() as InjectionKey<(redex_id: number, step_id
 <template>
   <pre v-if="data.error" class="error">{{ data.error }}</pre>
   <TransitionGroup v-else name="lams">
-    <LambdaExp v-for="[exp, betaRedex, replacedName, id], step_id in data.steps" :key="id" :decoration="{
-      lastRedex: betaRedex,
-      replacedName,
+    <LambdaExp v-for="step, step_id in data.steps" :key="step.id" :decoration="{
+      lastRedex: step.last_reduce,
+      replacedName: step.replaced_name,
       names: [...data.defs.keys()],
       step_id,
-    }" :exp="exp" />
+    }" :exp="step.display_exp" />
   </TransitionGroup>
 </template>

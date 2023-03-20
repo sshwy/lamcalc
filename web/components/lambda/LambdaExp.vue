@@ -1,7 +1,7 @@
 <script lang="ts">
 import { InjectionKey, provide, Ref, ref, watch } from 'vue'
 export type Decoration = {
-  lastRedex?: number
+  lastRedex?: [number, number]
   replacedName?: string
   names: string[]
   step_id: number,

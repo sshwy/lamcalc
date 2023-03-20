@@ -101,13 +101,15 @@ body {
   border-radius: 6px;
 }
 
-.lambda-redex > .lambda-app-func,
 .lambda-redex > .lambda-app-body {
   background: var(--vp-c-lambda-redex);
 }
 
 .lambda-ident {
   color: var(--vp-c-lambda-ident);
+}
+.lambda-ident-mark {
+  background: var(--vp-c-lambda-redex);
 }
 
 .lambda-const .lambda-ident {

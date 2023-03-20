@@ -1,47 +1,34 @@
 <script setup lang="ts">
-import { LambdaExp } from './lambda';
+// import { LambdaExp } from './lambda';
 import LambdaInteractive from './LambdaInteractive.vue';
 import { ref } from 'vue';
 import { useDebounceFn } from '@vueuse/core'
 
 // 不能直接 import 函数，不然 wasm 初始化的部分会被 tree-shake 删掉
-import * as lamcalc from 'lamcalc'
-const { Calculator } = lamcalc;
+// import * as lamcalc from 'lamcalc'
+// const { Calculator } = lamcalc;
 
 const inputContent = ref('Y I')
 const expStr = ref(inputContent.value)
-const calc = new Calculator()
-calc.init(inputContent.value);
 
-const steps = ref(calc.history())
-const error = ref('');
 const file = `
 Y = \\f. (\\x. f (x x)) \\x. f (x x)
 I = \\z. z
+T = \\x. \\y. x
+F = \\x. \\y. y
+O = \\f. \\x. x
+S = \\n. \\f. \\x. f (n f x)
+PLUS = \\n. \\m. \\f. \\x. n f (m f x)
 `
 
 const initWithStr = useDebounceFn((s: string) => {
   expStr.value = s
   console.log('init!', s)
-  try {
-    calc.init(s)
-    steps.value = calc.history()
-    error.value = ''
-  } catch (e) {
-    error.value = e
-  }
 }, 500)
 
 const onInput = (event: Event) => {
   initWithStr(inputContent.value);
 }
-
-const onReduce = (step: number, id: number) => {
-  console.log('reduce', step, id)
-  calc.beta_reduce(step, id)
-  steps.value = calc.history()
-}
-
 </script>
 
 <template>
