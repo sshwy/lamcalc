@@ -1,12 +1,11 @@
 use crate::{Error, Exp};
-use std::hash::Hash;
 
 /// maximum number of reductions in a simplification
 pub const SIMPLIFY_LIMIT: i32 = 1 << 10;
 
 impl<T> Exp<T>
 where
-    T: Clone + Eq + Hash,
+    T: Clone + Eq,
 {
     /// Simplify repeatedly using beta-reduction in normal order
     /// for at most [`SIMPLIFY_LIMIT`] times.

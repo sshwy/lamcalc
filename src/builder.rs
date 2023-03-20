@@ -1,8 +1,7 @@
 //! Conveniently build Lambda expressions.
 use crate::exp::{Exp, Ident};
-use std::hash::Hash;
 
-impl<T: Clone + Eq + Hash> Exp<T> {
+impl<T: Clone + Eq> Exp<T> {
     /// 标识符与 var 相同的 unbounded 变量绑定为 var
     ///
     /// de_bruijn_index 的初值为 0
@@ -30,7 +29,7 @@ impl<T: Clone + Eq + Hash> Exp<T> {
 #[doc(hidden)]
 pub fn app<T>(exps: Vec<Exp<T>>) -> Exp<T>
 where
-    T: Clone + Eq + Hash,
+    T: Clone + Eq,
 {
     let mut res = None;
     for exp in exps {
@@ -46,7 +45,7 @@ where
 #[doc(hidden)]
 pub fn abs<T>(v: T, exp: Exp<T>) -> Exp<T>
 where
-    T: Clone + Eq + Hash,
+    T: Clone + Eq,
 {
     let mut exp = exp;
     exp.bind(&v, 1); // 下面有 abstraction 故初值为 1
@@ -57,7 +56,7 @@ where
 #[doc(hidden)]
 pub fn unbounded_var<T>(v: T) -> Exp<T>
 where
-    T: Clone + Eq + Hash,
+    T: Clone + Eq,
 {
     Exp::Var(Ident(v, 0))
 }
@@ -65,7 +64,7 @@ where
 #[doc(hidden)]
 pub fn exp_var<T>(exp: &Exp<T>) -> Exp<T>
 where
-    T: Clone + Eq + Hash,
+    T: Clone + Eq,
 {
     exp.clone()
 }

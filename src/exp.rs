@@ -1,14 +1,12 @@
-use std::{fmt::Write, hash::Hash};
-
-use serde::Serialize;
+use std::fmt::Write;
 
 /// Identifier of variables.
 ///
 /// Adopt [De Bruijn index](https://en.wikipedia.org/wiki/De_Bruijn_index)
 /// for the second field, where 0 is for free variables and others are for
 /// bounded/captured variables.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
-pub struct Ident<T: Clone + Eq + Hash>(pub T, pub usize);
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Ident<T: Clone + Eq>(pub T, pub usize);
 
 /// Expression in Lambda Calculus.
 ///
@@ -20,8 +18,8 @@ pub struct Ident<T: Clone + Eq + Hash>(pub T, pub usize);
 /// - use `{:#}` for extra De Bruijn index information
 ///
 /// use [`lambda`](crate::lambda) macro to create lambda expression efficiently.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub enum Exp<T: Clone + Eq + Hash> {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Exp<T: Clone + Eq> {
     /// 一个变量
     Var(Ident<T>),
     /// 一个函数的定义 (abstraction)
@@ -30,7 +28,7 @@ pub enum Exp<T: Clone + Eq + Hash> {
     App(Box<Exp<T>>, Box<Exp<T>>),
 }
 
-impl<T: Clone + Eq + Hash> Exp<T> {
+impl<T: Clone + Eq> Exp<T> {
     /// Substitute free variables with expression
     pub fn subst_unbounded(&mut self, name: &T, exp: &Exp<T>) -> &mut Self {
         match self {
@@ -132,7 +130,7 @@ impl<T: Clone + Eq + Hash> Exp<T> {
 }
 
 // public methods
-impl<T: Clone + Eq + Hash> Exp<T> {
+impl<T: Clone + Eq> Exp<T> {
     /// Remove name of indentifiers, keeping just de bruijn code.
     /// If there are free variables, they will become the same thing.
     pub fn purify(&self) -> Exp<()> {
