@@ -2,13 +2,19 @@ use std::collections::HashMap;
 
 use crate::{parser, wasm::exp::JsExp, Error, Exp};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use serde::Serialize;
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 struct Step {
+    #[serde(skip)]
     raw_exp: Exp<String>,
+
     display_exp: JsExp,
-    last_reduce: Option<usize>,
+    /// redex_id and alpha_id
+    last_reduce: Option<(usize, usize)>,
     replaced_name: Option<String>,
+    // id for vue
+    id: String,
 }
 
 impl Step {
@@ -17,12 +23,14 @@ impl Step {
     /// Require mutable reference to mark the modified part of `display_exp`
     fn reduce_beta_redex(&mut self, id: usize) -> Result<Step, Error> {
         let mut raw_exp = self.raw_exp.clone();
-        raw_exp.reduce_beta_redex(&self.display_exp, id)?;
-        self.last_reduce = Some(id);
+        let alpha_id = raw_exp.reduce_beta_redex(&self.display_exp, id)?;
+        self.last_reduce = Some((id, alpha_id));
         let display_exp = JsExp::from_exp(&raw_exp);
+        let id = raw_exp.to_string();
         Ok(Self {
             raw_exp,
             display_exp,
+            id,
             last_reduce: None,
             replaced_name: None,
         })
@@ -34,20 +42,14 @@ impl Step {
         raw_exp.subst_unbounded(&name, exp);
         self.replaced_name = Some(name);
         let display_exp = JsExp::from_exp(&raw_exp);
+        let id = raw_exp.to_string();
         Ok(Self {
             raw_exp,
             display_exp,
+            id,
             last_reduce: None,
             replaced_name: None,
         })
-    }
-    fn to_quadruple(&self) -> (&JsExp, Option<usize>, Option<String>, String) {
-        (
-            &self.display_exp,
-            self.last_reduce,
-            self.replaced_name.clone(),
-            self.raw_exp.to_string(),
-        )
     }
 }
 
@@ -71,10 +73,12 @@ impl Calculator {
     }
     /// Set initial expression
     pub fn init(&mut self, expr: &str) -> Result<(), String> {
-        let (exp, _) = parser::parse_exp(expr).map_err(|e| e.to_string())?;
-        let wasm_exp = JsExp::from_exp(&exp);
+        let (raw_exp, _) = parser::parse_exp(expr).map_err(|e| e.to_string())?;
+        let wasm_exp = JsExp::from_exp(&raw_exp);
+        let id = raw_exp.to_string();
         self.steps = vec![Step {
-            raw_exp: exp,
+            raw_exp,
+            id,
             display_exp: wasm_exp,
             last_reduce: None,
             replaced_name: None,
@@ -129,10 +133,9 @@ impl Calculator {
     }
     /// Get all steps
     ///
-    /// return `(JsExp, Option<usize>, Option<String>, String)[]`
+    /// return `Step`
     pub fn history(&self) -> Result<JsValue, String> {
-        let res: Vec<_> = self.steps.iter().map(Step::to_quadruple).collect();
-        serde_wasm_bindgen::to_value(&res).map_err(|e| e.to_string())
+        serde_wasm_bindgen::to_value(&self.steps).map_err(|e| e.to_string())
     }
     /// Get all named definitions
     ///
