@@ -111,11 +111,15 @@ body {
 }
 
 .lambda-const .lambda-ident {
-  color: var(--vp-c-lambda-const);
   cursor: pointer;
+  color: var(--vp-c-lambda-const);
 }
 .lambda-const .lambda-ident:hover {
   background: var(--vp-c-lambda-redex);
+}
+.lambda-abs-head-redex {
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .lams-move,

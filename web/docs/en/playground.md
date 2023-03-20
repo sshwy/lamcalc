@@ -6,7 +6,8 @@ next: false
 
 # Playground
 
-Try writing your lambda expression!  You can drag and drop to make beta reduction.
+Try writing your lambda expression!  You can click on underlined part to make beta reduction,
+or click on constant-colored variables to expand them.
 
 <script setup>
 import LambdaPlayground from '../../components/LambdaPlayground.vue'

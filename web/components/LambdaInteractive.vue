@@ -34,12 +34,6 @@ const resetExp = (exp: string) => {
   }
 }
 
-const onReduce = (step: number, id: number) => {
-  console.log('reduce', step, id)
-  calc.beta_reduce(step, id)
-  data.steps = calc.history()
-}
-
 onMounted(() => {
   resetExp(props.exp)
 })
@@ -56,12 +50,18 @@ provide(replaceNameKey, (name, step_id) => {
   calc.replace_def_occurrance(step_id, name)
   data.steps = calc.history()
 })
+provide(betaReduceKey, (id, step_id) => {
+  console.log('reduce', step_id, id)
+  calc.beta_reduce(step_id, id)
+  data.steps = calc.history()
+})
 
 </script>
 
 <script lang="ts">
 import type { InjectionKey } from 'vue'
 export const replaceNameKey = Symbol() as InjectionKey<(name: string, step_id: number) => void>;
+export const betaReduceKey = Symbol() as InjectionKey<(redex_id: number, step_id: number) => void>;
 </script>
 
 <template>
@@ -72,6 +72,6 @@ export const replaceNameKey = Symbol() as InjectionKey<(name: string, step_id: n
       replacedName,
       names: [...data.defs.keys()],
       step_id,
-    }" :exp="exp" @beta-reduce="id => onReduce(step_id, id)" />
+    }" :exp="exp" />
   </TransitionGroup>
 </template>

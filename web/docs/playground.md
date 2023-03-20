@@ -8,9 +8,7 @@ next: false
 
 不妨试试自己写一些 Lambda 表达式！
 
-尝试寻找可以化简的部分（beta redex），使用拖动的方式化简它！
-
-尝试点击某些变量将其展开为预定义的函数！
+尝试点击下划线部分化简表达式，尝试点击某些变量将其展开为预定义的函数！
 
 <script setup>
 import LambdaPlayground from '../components/LambdaPlayground.vue'
