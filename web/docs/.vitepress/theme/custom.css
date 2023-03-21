@@ -101,7 +101,8 @@ body {
   border-radius: 6px;
 }
 
-.lambda-redex > .lambda-app-body {
+.lambda-beta-redex > .lambda-app-body,
+.lambda-eta-redex > .lambda-app-body {
   background: var(--vp-c-lambda-redex);
 }
 

@@ -10,7 +10,7 @@
 WASM 模块构建：
 
 ```bash
-wasm-pack build  --out-name index --all-features
+wasm-pack build --all-features
 ```
 
 更新 `lamcalc` 可以执行 `yarn` 完成。

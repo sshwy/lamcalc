@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Ident from './Ident.vue';
+import IdentStatic from './IdentStatic.vue'
 import { computed } from 'vue';
 
 const props = defineProps<{
@@ -18,7 +18,7 @@ const nextLevel = computed(() => props.bracketLevel + (props.parentheses ? 1 : 0
 
     <span class="lambda-abs" v-if="inner.Abs">
       <span class="lambda-lambda">λ</span>
-      <Ident :ident="inner.Abs.ident" :de="0" />
+      <IdentStatic :alpha="inner.Abs.alpha_id" :ident="inner.Abs.ident" :de="0" />
       <span class="lambda-dot">.</span>
       <ExpStatic v-bind="inner.Abs.body" :bracket-level="nextLevel" />
     </span>
@@ -28,7 +28,7 @@ const nextLevel = computed(() => props.bracketLevel + (props.parentheses ? 1 : 0
       <ExpStatic v-bind="inner.App.body" :bracket-level="nextLevel" />
     </span>
     <span v-else-if="inner.Var" class="lambda-var">
-      <Ident :ident="inner.Var.ident" :de="inner.Var.code" />
+      <IdentStatic :alpha="inner.Var.alpha_id" :ident="inner.Var.ident" :de="inner.Var.code" />
     </span>
 
     <span v-if="parentheses" :class="`lambda-bracket-${bracketLevel % 3}`">)</span>

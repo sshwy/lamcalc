@@ -55,6 +55,11 @@ provide(betaReduceKey, (id, step_id) => {
   calc.beta_reduce(step_id, id)
   data.steps = calc.history()
 })
+provide(etaReduceKey, (id, step_id) => {
+  console.log('reduce', step_id, id)
+  calc.eta_reduce(step_id, id)
+  data.steps = calc.history()
+})
 
 </script>
 
@@ -62,14 +67,16 @@ provide(betaReduceKey, (id, step_id) => {
 import type { InjectionKey } from 'vue'
 export const replaceNameKey = Symbol() as InjectionKey<(name: string, step_id: number) => void>;
 export const betaReduceKey = Symbol() as InjectionKey<(redex_id: number, step_id: number) => void>;
+export const etaReduceKey = Symbol() as InjectionKey<(redex_id: number, step_id: number) => void>;
 </script>
 
 <template>
   <pre v-if="data.error" class="error">{{ data.error }}</pre>
   <TransitionGroup v-else name="lams">
     <LambdaExp v-for="step, step_id in data.steps" :key="step.id" :decoration="{
-      lastRedex: step.last_reduce,
-      replacedName: step.replaced_name,
+      betaRedex: step.last_action?.BetaReduce,
+      etaRedex: step.last_action?.EtaReduce,
+      replacedName: step.last_action?.SubstUnbounded,
       names: [...data.defs.keys()],
       step_id,
     }" :exp="step.display_exp" />

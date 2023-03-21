@@ -27,6 +27,13 @@ const getVitePressVersion = () => {
     return ''
   }
 }
+const getLamcalcVersion = () => {
+  try {
+    return String(JSON.parse(readFileSync(join(process.cwd(), 'node_modules', 'lamcalc', 'package.json')).toString()).version);
+  } catch (e) {
+    return ''
+  }
+}
 
 // 进行文本替换
 const macros: {
@@ -84,9 +91,11 @@ export default defineConfig({
 
     footer: {
       message: '本站内容遵循 MIT 许可协议',
+      lastUpdated: '上次更新于：',
       copyright: 'Copyright © 2023-present Weiyao Huang',
       hash: getLatestHash(),
       vitePressVersion: getVitePressVersion(),
+      lamcalcVersion: getLamcalcVersion(),
     } as any,
 
     editLink: {
@@ -138,8 +147,9 @@ export default defineConfig({
         ],
         footer: {
           message: 'Released under the MIT License.',
+          lastUpdated: 'Last updated: ',
           copyright: 'Copyright © 2023-present Weiyao Huang'
-        },
+        } as any,
         editLink: {
           pattern: 'https://github.com/sshwy/lamcalc/tree/master/web/docs/:path',
           text: 'Edit this page on Github',
