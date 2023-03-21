@@ -61,14 +61,6 @@ where
     Exp::Var(Ident(v, 0))
 }
 
-#[doc(hidden)]
-pub fn exp_var<T>(exp: &Exp<T>) -> Exp<T>
-where
-    T: Clone + Eq,
-{
-    exp.clone()
-}
-
 // The keyword metavariable $crate can be used to refer to the current crate;
 /// Build lambda expression with [`String`] identifier conveniently.
 /// Generally:
@@ -86,7 +78,7 @@ macro_rules! lambda {
     };
     // variable expression
     [{$v:expr}] => {
-        $crate::builder::exp_var(&$v)
+        $v.clone()
     };
     // variable
     [$v:ident] => {
@@ -100,4 +92,21 @@ macro_rules! lambda {
     [$l:tt $( $t:tt )+] => {
         $crate::builder::app(vec![lambda![$l], $( lambda![$t] ),+])
     };
+}
+
+#[cfg(test)]
+mod tests{
+    use crate::builder::{abs, app, unbounded_var};
+
+    #[test]
+    fn test_builder() {
+        let and = lambda!(x. (y. x y x));
+        assert_eq!(and, abs(String::from("x"), abs(String::from("y"), app(
+            vec![
+                unbounded_var(String::from("x")),
+                unbounded_var(String::from("y")),
+                unbounded_var(String::from("x")),
+            ]
+        ))));
+    }
 }

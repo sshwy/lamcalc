@@ -35,8 +35,8 @@ pub use exp::Ident;
 
 #[cfg(test)]
 mod tests {
-    use crate::{lambda, Error};
     use super::{Exp, Ident};
+    use crate::{lambda, Error};
 
     #[test]
     fn test_display() {
@@ -53,7 +53,7 @@ mod tests {
     }
     #[test]
     fn test_clone() {
-        let mut tt = lambda!(x. y. x).purify();
+        let mut tt = lambda!(x.y.x).purify();
         let mut ff = tt.clone();
         ff.into_body().into_body().into_ident().1 = 1;
         assert_eq!(tt.into_body().into_body().into_ident().1, 2);
