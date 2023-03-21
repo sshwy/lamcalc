@@ -1,6 +1,6 @@
 [package]
 name = "lamcalc"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2021"
 license = "MIT"
 description = "A library for creating, parsing and evaluating lambda calculus"
