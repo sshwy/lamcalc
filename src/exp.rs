@@ -29,79 +29,89 @@ pub enum Exp<T: Clone + Eq> {
 }
 
 impl<T: Clone + Eq> Exp<T> {
-    /// Substitute free variables with expression
-    pub fn subst_unbounded(&mut self, name: &T, exp: &Exp<T>) -> &mut Self {
+    // iterate over each variable
+    fn reduce_by_var_with_depth<F, D>(&mut self, f: F, depth: usize, sum: Option<D>) -> Option<D>
+    where
+        F: Fn(&mut Exp<T>, usize, Option<D>) -> Option<D> + Clone,
+    {
         match self {
-            Exp::Var(Ident(ident, de)) => {
-                if name == ident && *de == 0 {
-                    *self = exp.clone();
+            Exp::Var(_) => f(self, depth, sum),
+            Exp::Abs(_, body) => body.reduce_by_var_with_depth(f, depth + 1, sum),
+            Exp::App(func, body) => {
+                let sum = func.reduce_by_var_with_depth(f.clone(), depth, sum);
+                body.reduce_by_var_with_depth(f, depth, sum)
+            }
+        }
+    }
+    /// iterate over each variable
+    /// the second parameter for f is `depth`: number of abstractions
+    /// containing this variable.
+    pub fn for_each_var<F>(&mut self, f: F)
+    where
+        F: Fn(&mut Exp<T>, usize) -> () + Clone,
+    {
+        self.reduce_by_var_with_depth(|v, dep, _| Some(f(v, dep)), 0, None);
+    }
+    /// Substitute free variables (de bruijn index = 0) with expression
+    pub fn subst_unbounded(&mut self, name: &T, exp: &Exp<T>) -> &mut Self {
+        self.for_each_var(|e, _| {
+            if let Exp::Var(ident) = &e {
+                if ident.0 == *name && ident.1 == 0 {
+                    *e = exp.clone();
                 }
             }
-            Exp::Abs(_, body) => {
-                body.subst_unbounded(name, exp);
-            }
-            Exp::App(l, body) => {
-                l.subst_unbounded(name, exp);
-                body.subst_unbounded(name, exp);
-            }
-        };
+        });
         self
     }
     /// 进行标识符的替换
     /// 在不允许表达式中出现自由变量的情况下（遇到了就忽略），被替换的变量
     /// 的 de_bruijn_index 总是 >0，并且我们总是将某个 abstraction 的参数
     /// 进行替换。因此只用记 de_bruijn_index 即可。
-    fn subst_de(&mut self, de_index: usize, exp: Exp<T>) -> &mut Self {
-        match self {
-            Exp::Var(Ident(_, de)) => {
-                if de_index == *de {
-                    *self = exp;
+    fn subst_de(&mut self, de_index: usize, exp: &Exp<T>) -> &mut Self {
+        self.for_each_var(|v, dep| {
+            if let Exp::Var(ident) = &v {
+                if ident.1 == de_index + dep {
+                    let mut exp = exp.clone();
+                    exp.shift_outer_captured_var(dep as isize);
+                    *v = exp;
                 }
             }
-            Exp::Abs(_, body) => {
-                let mut exp = exp;
-                exp.push(0);
-                body.subst_de(de_index + 1, exp);
-            }
-            Exp::App(l, body) => {
-                l.subst_de(de_index, exp.clone());
-                body.subst_de(de_index, exp);
-            }
-        };
+        });
         self
     }
-    /// 将表达式中被**外部**捕获的变量的 code 都减少 1
-    fn lift(&mut self, min_de: usize) {
-        match self {
-            Exp::Var(Ident(_, code)) => {
-                if *code >= min_de {
-                    *code = *code - 1;
-                }
-            }
-            Exp::Abs(_, body) => {
-                body.lift(min_de + 1);
-            }
-            Exp::App(func, body) => {
-                func.lift(min_de);
-                body.lift(min_de);
-            }
-        }
-    }
+    // 将表达式中被**外部**捕获的变量的 code 都减少 1
+    // fn lift(&mut self, min_de: usize) {
+    //     match self {
+    //         Exp::Var(Ident(_, code)) => {
+    //             if *code >= min_de {
+    //                 *code = *code - 1;
+    //             }
+    //         }
+    //         Exp::Abs(_, body) => {
+    //             body.lift(min_de + 1);
+    //         }
+    //         Exp::App(func, body) => {
+    //             func.lift(min_de);
+    //             body.lift(min_de);
+    //         }
+    //     }
+    // }
+    /// alter the de bruijn index of outer captured variable
+    /// by a uniform shift.
+    ///
     /// 将当前表达式进行抽象，或者放入某个抽象的子表达式，
     /// 这会导致被外部捕获的变量 的 de bruijn index + 1
-    fn push(&mut self, cur_de: usize) {
-        match self {
-            Exp::Var(Ident(_, code)) => {
-                if *code > cur_de {
-                    *code = *code + 1;
+    fn shift_outer_captured_var(&mut self, shift: isize) {
+        self.for_each_var(|v, dep| {
+            let ident = v.into_ident();
+            if ident.1 > dep {
+                if shift > 0 {
+                    ident.1 = ident.1 + shift as usize
+                } else {
+                    ident.1 = ident.1 - (-shift) as usize
                 }
             }
-            Exp::Abs(_, body) => body.push(cur_de + 1),
-            Exp::App(func, body) => {
-                func.push(cur_de);
-                body.push(cur_de);
-            }
-        }
+        });
     }
     pub(crate) fn beta_reduce(&mut self) -> bool {
         if let Exp::App(func, body) = self {
@@ -111,8 +121,9 @@ impl<T: Clone + Eq> Exp<T> {
             }
             if is_redex {
                 let mut func = *func.to_owned();
-                func.subst_de(0, *body.to_owned());
-                func.lift(1);
+                func.subst_de(0, body);
+                func.shift_outer_captured_var(-1);
+                // func.lift(1);
                 *self = func.into_body().to_owned();
                 return true;
             }
@@ -124,11 +135,34 @@ impl<T: Clone + Eq> Exp<T> {
     pub(crate) fn eta_reduce(&mut self) -> bool {
         if let Exp::Abs(_, body) = self {
             if let Exp::App(func, app_body) = &mut **body {
+                // todo!();
+                // let mut flag = Box::new(true);
+                // func.for_each_var(|v, _| if v.into_ident().1 == 1 {
+                //     let mut flag = flag;
+                //     *flag = false;
+                // });
                 if let Exp::Var(Ident(_, code)) = &mut **app_body {
                     if *code == 1 {
-                        func.lift(1);
-                        *self = *func.to_owned();
-                        return true;
+                        if func
+                            .reduce_by_var_with_depth(
+                                |v, _, prev| {
+                                    if prev.is_some() {
+                                        prev
+                                    } else if v.into_ident().1 == 1 {
+                                        Some(())
+                                    } else {
+                                        None
+                                    }
+                                },
+                                0,
+                                None,
+                            )
+                            .is_none()
+                        {
+                            func.shift_outer_captured_var(-1); // func.lift(1);
+                            *self = *func.to_owned();
+                            return true;
+                        }
                     }
                 }
             }
@@ -232,7 +266,7 @@ impl std::fmt::Display for Exp<()> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{lambda, Error};
+    use crate::{lambda, Error, Exp};
 
     #[test]
     fn subst() {
@@ -240,11 +274,23 @@ mod tests {
         let and = lambda!(x. y. x y x);
 
         let mut e = and.clone();
-        e.subst_de(0, tt);
+        e.subst_de(0, &tt);
         assert_eq!(
             format!("{:#}", e),
             "λx. λy. ((λx. λy. x<2>) y<1>) λx. λy. x<2>"
         );
+
+        let mut exp = lambda!(z. x. (y. x y) z);
+        {
+            let x = exp.into_body().into_body();
+            if let Exp::App(func, body) = x {
+                func.subst_de(0, &body);
+                func.shift_outer_captured_var(-1);
+                // func.lift(1);
+                *x = func.into_body().to_owned();
+            }
+        }
+        assert_eq!(exp.purify().to_string(), "λλ[1](2)");
     }
     #[test]
     fn test_eta_reduce() {
@@ -252,6 +298,8 @@ mod tests {
         assert!(exp.into_body().eta_reduce());
         assert!(exp.eta_reduce());
         assert_eq!(exp, lambda!(f));
+        let mut exp2 = lambda!(x. x x);
+        assert!(!exp2.eta_reduce());
     }
     #[test]
     fn test_subst_unbounded() -> Result<(), Error> {

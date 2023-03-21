@@ -25,6 +25,8 @@ pub struct Abs {
     pub body: Box<JsExp>,
     /// whether it's in a beta-redex
     pub in_beta_redex: bool,
+    /// whether eta reduceable
+    pub eta_redex: Option<usize>,
 }
 #[derive(Serialize, Debug, Clone)]
 /// application data
@@ -75,6 +77,7 @@ impl JsExp {
                     alpha_id: 0,
                     body: Box::new(Self::init_exp(body)),
                     in_beta_redex: false,
+                    eta_redex: None,
                 }),
             },
             crate::Exp::App(func, body) => Self {
@@ -87,20 +90,21 @@ impl JsExp {
             },
         }
     }
-    fn for_each_captured_by<'a, F>(&'a mut self, de: usize, f: F)
+    fn for_each_captured_by<'a, F, D>(&'a mut self, de: usize, f: F, sum: Option<D>) -> Option<D>
     where
-        F: Fn(&mut Var) -> () + Clone,
+        F: Fn(&mut Var, Option<D>) -> Option<D> + Clone,
     {
         match &mut self.inner {
             InnerExp::Var(var) => {
                 if var.code == de {
-                    f(var);
+                    return f(var, sum);
                 }
+                return sum;
             }
-            InnerExp::Abs(abs) => abs.body.for_each_captured_by(de + 1, f),
+            InnerExp::Abs(abs) => abs.body.for_each_captured_by(de + 1, f, sum),
             InnerExp::App(app) => {
-                app.func.for_each_captured_by(de, f.clone());
-                app.body.for_each_captured_by(de, f);
+                let sum = app.func.for_each_captured_by(de, f.clone(), sum);
+                app.body.for_each_captured_by(de, f, sum)
             }
         }
     }
@@ -110,8 +114,8 @@ impl JsExp {
         is_app_func: bool,
         is_app_body: bool,
         is_tail: bool,
-        redex_counter: &mut usize,
-        setoid_counter: &mut usize,
+        counter: &mut usize,
+        // setoid_counter: &mut usize,
     ) {
         match &mut self.inner {
             InnerExp::Var(_) => {}
@@ -124,67 +128,74 @@ impl JsExp {
                     false,
                     false,
                     self.parentheses || is_tail,
-                    redex_counter,
-                    setoid_counter,
+                    counter,
+                    // redex_counter,
+                    // setoid_counter,
                 );
-                *setoid_counter = *setoid_counter + 1;
-                abs.alpha_id = *setoid_counter;
-                abs.body.for_each_captured_by(1, |v| {
-                    v.alpha_id = *setoid_counter;
-                });
+                *counter = *counter + 1;
+                // *setoid_counter = *setoid_counter + 1;
+                abs.alpha_id = *counter;
+                abs.body.for_each_captured_by(
+                    1,
+                    |v, _| {
+                        v.alpha_id = *counter;
+                        None
+                    },
+                    Some(()),
+                );
+                if let InnerExp::App(app) = &mut abs.body.inner {
+                    if app
+                        .func
+                        .for_each_captured_by(1, |_, _| Some(()), None)
+                        .is_none()
+                    {
+                        if let InnerExp::Var(var) = &app.body.inner {
+                            if var.code == 1 {
+                                *counter = *counter + 1;
+                                abs.eta_redex = Some(*counter);
+                            }
+                        }
+                    }
+                }
             }
             InnerExp::App(app) => {
                 if is_app_body {
                     self.parentheses = true;
                 }
-                app.func
-                    .decorate(true, false, false, redex_counter, setoid_counter);
+                app.func.decorate(true, false, false, counter);
                 app.body.decorate(
                     false,
                     true,
                     self.parentheses || is_tail,
-                    redex_counter,
-                    setoid_counter,
+                    counter,
+                    // redex_counter,
+                    // setoid_counter,
                 );
                 if let InnerExp::Abs(_) = app.func.inner {
-                    *redex_counter = *redex_counter + 1;
-                    app.beta_redex = Some(*redex_counter)
+                    *counter = *counter + 1;
+                    // *redex_counter = *redex_counter + 1;
+                    app.beta_redex = Some(*counter)
                 }
             }
         }
     }
     pub(crate) fn from_exp(expr: &crate::Exp<String>) -> Self {
         let mut exp = Self::init_exp(expr);
-        let mut redex_counter = 0;
-        let mut setoid_counter = 0;
-        exp.decorate(false, false, true, &mut redex_counter, &mut setoid_counter);
+        let mut counter = 0;
+        // let mut setoid_counter = 0;
+        exp.decorate(false, false, true, &mut counter);
         exp
     }
-    #[doc(hidden)]
-    pub fn into_var(&mut self) -> &mut Var {
-        match &mut self.inner {
-            InnerExp::Var(var) => var,
-            _ => panic!("not var"),
-        }
-    }
-    #[doc(hidden)]
-    pub fn into_app(&mut self) -> &mut App {
-        match &mut self.inner {
-            InnerExp::App(app) => app,
-            _ => panic!("not app"),
-        }
-    }
-    #[doc(hidden)]
-    pub fn into_abs(&mut self) -> &mut Abs {
-        match &mut self.inner {
-            InnerExp::Abs(abs) => abs,
-            _ => panic!("not app"),
-        }
-    }
-    fn into_abs_ref(&self) -> &Abs {
+    fn into_app_ref(&self) -> Result<&App, Error> {
         match &self.inner {
-            InnerExp::Abs(abs) => abs,
-            _ => panic!("not app"),
+            InnerExp::App(app) => Ok(app),
+            _ => Err(Error::InvalidInnerType),
+        }
+    }
+    fn into_abs_ref(&self) -> Result<&Abs, Error> {
+        match &self.inner {
+            InnerExp::Abs(abs) => Ok(abs),
+            _ => Err(Error::InvalidInnerType),
         }
     }
 }
@@ -196,14 +207,14 @@ impl Exp<String> {
     /// to mark the modified part.
     ///
     /// return the alpha_id of reduced part.
-    pub(crate) fn reduce_beta_redex(
+    pub(crate) fn beta_reduce_by_id(
         &mut self,
         display_exp: &JsExp,
         id: usize,
     ) -> Result<usize, Error> {
         if let InnerExp::App(app) = &display_exp.inner {
             if let Some(beta_redex) = app.beta_redex {
-                let alpha_id = app.func.into_abs_ref().alpha_id;
+                let alpha_id = app.func.into_abs_ref()?.alpha_id;
                 if beta_redex == id {
                     if self.beta_reduce() {
                         // display_exp.marked = true;
@@ -215,21 +226,39 @@ impl Exp<String> {
         }
         match self {
             Exp::Var(_) => Err(Error::RedexNotFound),
-            Exp::Abs(_, body) => {
-                if let InnerExp::Abs(abs) = &display_exp.inner {
-                    return body.reduce_beta_redex(&abs.body, id);
-                }
-                Err(Error::InvalidDisplayExp)
-            }
+            Exp::Abs(_, body) => body.beta_reduce_by_id(&display_exp.into_abs_ref()?.body, id),
             Exp::App(func, body) => {
-                if let InnerExp::App(app) = &display_exp.inner {
-                    match func.reduce_beta_redex(&app.func, id) {
-                        Ok(alpha_id) => Ok(alpha_id),
-                        Err(Error::RedexNotFound) => body.reduce_beta_redex(&app.body, id),
-                        Err(e) => Err(e),
-                    }
-                } else {
-                    Err(Error::InvalidDisplayExp)
+                let app = display_exp.into_app_ref()?;
+                match func.beta_reduce_by_id(&app.func, id) {
+                    Err(Error::RedexNotFound) => body.beta_reduce_by_id(&app.body, id),
+                    r => r,
+                }
+            }
+        }
+    }
+    /// return the alpha_id of reduced part.
+    pub(crate) fn eta_reduce_by_id(
+        &mut self,
+        display_exp: &JsExp,
+        id: usize,
+    ) -> Result<usize, Error> {
+        if let Exp::Abs(_, _) = self {
+            let abs = display_exp.into_abs_ref()?;
+            if abs.eta_redex.is_some() && abs.eta_redex.unwrap() == id {
+                if self.eta_reduce() {
+                    return Ok(abs.alpha_id);
+                }
+                return Err(Error::InvalidRedex);
+            }
+        }
+        match self {
+            Exp::Var(_) => Err(Error::RedexNotFound),
+            Exp::Abs(_, body) => body.eta_reduce_by_id(&display_exp.into_abs_ref()?.body, id),
+            Exp::App(func, body) => {
+                let app = display_exp.into_app_ref()?;
+                match func.eta_reduce_by_id(&app.func, id) {
+                    Err(Error::RedexNotFound) => body.eta_reduce_by_id(&app.body, id),
+                    r => r,
                 }
             }
         }
@@ -240,7 +269,27 @@ impl Exp<String> {
 mod tests {
     use crate::lambda;
 
-    use super::JsExp;
+    use super::{Abs, App, InnerExp, JsExp, Var};
+    impl JsExp {
+        fn into_var(&mut self) -> &mut Var {
+            match &mut self.inner {
+                InnerExp::Var(var) => var,
+                _ => panic!("not var"),
+            }
+        }
+        fn into_app_mut(&mut self) -> &mut App {
+            match &mut self.inner {
+                InnerExp::App(app) => app,
+                _ => panic!("not app"),
+            }
+        }
+        fn into_abs_mut(&mut self) -> &mut Abs {
+            match &mut self.inner {
+                InnerExp::Abs(abs) => abs,
+                _ => panic!("not app"),
+            }
+        }
+    }
 
     #[test]
     fn test_jsexp() {
@@ -248,15 +297,15 @@ mod tests {
         let mut jsexp = JsExp::from_exp(&exp);
         dbg!(&jsexp);
         {
-            let id = jsexp.into_abs().alpha_id;
+            let id = jsexp.into_abs_mut().alpha_id;
             assert_eq!(
                 id,
                 jsexp
-                    .into_abs()
+                    .into_abs_mut()
                     .body
-                    .into_app()
+                    .into_app_mut()
                     .func
-                    .into_app()
+                    .into_app_mut()
                     .func
                     .into_var()
                     .alpha_id
@@ -264,15 +313,15 @@ mod tests {
             assert_eq!(
                 id,
                 jsexp
-                    .into_abs()
+                    .into_abs_mut()
                     .body
-                    .into_app()
+                    .into_app_mut()
                     .body
-                    .into_abs()
+                    .into_abs_mut()
                     .body
-                    .into_app()
+                    .into_app_mut()
                     .func
-                    .into_app()
+                    .into_app_mut()
                     .func
                     .into_var()
                     .alpha_id
@@ -280,13 +329,13 @@ mod tests {
         }
         {
             let abs = jsexp
-                .into_abs()
+                .into_abs_mut()
                 .body
-                .into_app()
+                .into_app_mut()
                 .func
-                .into_app()
+                .into_app_mut()
                 .body
-                .into_abs();
+                .into_abs_mut();
             assert_eq!(abs.alpha_id, abs.body.into_var().alpha_id);
         }
     }

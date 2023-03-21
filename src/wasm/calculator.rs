@@ -1,19 +1,32 @@
 use std::collections::HashMap;
 
 use crate::{parser, wasm::exp::JsExp, Error, Exp};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use serde::Serialize;
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
+#[derive(Clone, Serialize)]
+enum Mutation {
+    /// redex_id and alpha_id
+    BetaReduce {
+        redex: usize,
+        alpha: usize,
+    },
+    EtaReduce {
+        redex: usize,
+        alpha: usize,
+    },
+    SubstUnbounded(String),
+}
 
 #[derive(Clone, Serialize)]
 struct Step {
     #[serde(skip)]
     raw_exp: Exp<String>,
-
     display_exp: JsExp,
-    /// redex_id and alpha_id
-    last_reduce: Option<(usize, usize)>,
-    replaced_name: Option<String>,
-    // id for vue
+    last_action: Option<Mutation>,
+    // last_reduce: Option<(usize, usize)>,
+    // replaced_name: Option<String>,
+    /// id for vue
     id: String,
 }
 
@@ -21,18 +34,36 @@ impl Step {
     /// Resolve beta-redex with `id` to get the following step
     ///
     /// Require mutable reference to mark the modified part of `display_exp`
-    fn reduce_beta_redex(&mut self, id: usize) -> Result<Step, Error> {
+    fn beta_reduce_by_id(&mut self, id: usize) -> Result<Step, Error> {
         let mut raw_exp = self.raw_exp.clone();
-        let alpha_id = raw_exp.reduce_beta_redex(&self.display_exp, id)?;
-        self.last_reduce = Some((id, alpha_id));
+        let alpha_id = raw_exp.beta_reduce_by_id(&self.display_exp, id)?;
+        self.last_action = Some(Mutation::BetaReduce {
+            redex: id,
+            alpha: alpha_id,
+        });
         let display_exp = JsExp::from_exp(&raw_exp);
         let id = raw_exp.to_string();
         Ok(Self {
             raw_exp,
             display_exp,
             id,
-            last_reduce: None,
-            replaced_name: None,
+            last_action: None,
+        })
+    }
+    fn eta_reduce_by_id(&mut self, id: usize) -> Result<Step, Error> {
+        let mut raw_exp = self.raw_exp.clone();
+        let alpha_id = raw_exp.eta_reduce_by_id(&self.display_exp, id)?;
+        self.last_action = Some(Mutation::EtaReduce {
+            redex: id,
+            alpha: alpha_id,
+        });
+        let display_exp = JsExp::from_exp(&raw_exp);
+        let id = raw_exp.to_string();
+        Ok(Self {
+            raw_exp,
+            display_exp,
+            id,
+            last_action: None,
         })
     }
     /// replace free variables with expression by name
@@ -40,15 +71,14 @@ impl Step {
         let mut raw_exp = self.raw_exp.clone();
         let name = name.to_string();
         raw_exp.subst_unbounded(&name, exp);
-        self.replaced_name = Some(name);
+        self.last_action = Some(Mutation::SubstUnbounded(name));
         let display_exp = JsExp::from_exp(&raw_exp);
         let id = raw_exp.to_string();
         Ok(Self {
             raw_exp,
             display_exp,
             id,
-            last_reduce: None,
-            replaced_name: None,
+            last_action: None,
         })
     }
 }
@@ -80,23 +110,37 @@ impl Calculator {
             raw_exp,
             id,
             display_exp: wasm_exp,
-            last_reduce: None,
-            replaced_name: None,
+            last_action: None,
         }];
         Ok(())
     }
+    fn trim_steps(&mut self, step_num: usize) -> Result<Step, String> {
+        if step_num >= self.steps.len() {
+            return Err(format!("invalid step {}", step_num));
+        }
+        let last = self.steps.swap_remove(step_num);
+        while step_num < self.steps.len() {
+            // remove succeeding steps
+            self.steps.swap_remove(step_num);
+        }
+        Ok(last)
+    }
+
     /// Resolve beta reduction for the `steps`-th expression
     pub fn beta_reduce(&mut self, step: usize, redex_id: usize) -> Result<(), String> {
-        if step >= self.steps.len() {
-            return Err(format!("invalid step {}", step));
-        }
-        let mut last = self.steps.swap_remove(step);
-        while step < self.steps.len() {
-            // remove succeeding steps
-            self.steps.swap_remove(step);
-        }
+        let mut last = self.trim_steps(step)?;
         let cur = last
-            .reduce_beta_redex(redex_id)
+            .beta_reduce_by_id(redex_id)
+            .map_err(|e| format!("化简错误：{}", e))?;
+        self.steps.push(last);
+        self.steps.push(cur);
+        Ok(())
+    }
+    /// Resolve beta reduction for the `steps`-th expression
+    pub fn eta_reduce(&mut self, step: usize, id: usize) -> Result<(), String> {
+        let mut last = self.trim_steps(step)?;
+        let cur = last
+            .eta_reduce_by_id(id)
             .map_err(|e| format!("化简错误：{}", e))?;
         self.steps.push(last);
         self.steps.push(cur);
@@ -104,18 +148,11 @@ impl Calculator {
     }
     /// Replace free variable with `name` with corresponding expresion in defs
     pub fn replace_def_occurrance(&mut self, step: usize, name: &str) -> Result<(), String> {
-        if step >= self.steps.len() {
-            return Err(format!("invalid step {}", step));
-        }
+        let mut last = self.trim_steps(step)?;
         let exp = self
             .defs
             .get(name)
             .ok_or(format!("expression not found name = {}", name))?;
-        let mut last = self.steps.swap_remove(step);
-        while step < self.steps.len() {
-            // remove succeeding steps
-            self.steps.swap_remove(step);
-        }
         let cur = last
             .replace_free_variable(name, exp)
             .map_err(|e| format!("化简错误：{}", e))?;
@@ -163,10 +200,12 @@ mod tests {
     fn test_calculator() -> Result<(), String> {
         let mut calc = Calculator::new();
         calc.init("I y")?;
-        calc.add_defs(r"
+        calc.add_defs(
+            r"
             I = \x. x
             K = \x. \y. x
-        ")?;
+        ",
+        )?;
 
         Ok(())
     }

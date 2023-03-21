@@ -15,7 +15,10 @@ pub enum Error {
     InvalidRedex,
     /// 无效表达式
     #[cfg(feature = "wasm")]
-    InvalidDisplayExp
+    InvalidDisplayExp,
+    /// 内部表达式类型错误
+    #[cfg(feature = "wasm")]
+    InvalidInnerType,
 }
 
 impl std::fmt::Display for Error {
@@ -30,6 +33,8 @@ impl std::fmt::Display for Error {
             Error::InvalidRedex => write!(f, "无效的 redex"),
             #[cfg(feature = "wasm")]
             Error::InvalidDisplayExp => write!(f, "无效的表达式"),
+            #[cfg(feature = "wasm")]
+            Error::InvalidInnerType => write!(f, "内部表达式类型错误")
         }
     }
 }
