@@ -103,13 +103,6 @@ impl<T: Clone + Eq> Exp<T> {
             }
         }
     }
-    fn unwrap_abs(&mut self) {
-        if let Exp::Abs(_, body) = self {
-            *self = *body.to_owned();
-        } else {
-            panic!("not abs!")
-        }
-    }
     pub(crate) fn beta_reduce(&mut self) -> bool {
         if let Exp::App(func, body) = self {
             let mut is_redex = false;
@@ -120,17 +113,28 @@ impl<T: Clone + Eq> Exp<T> {
                 let mut func = *func.to_owned();
                 func.subst_de(0, *body.to_owned());
                 func.lift(1);
-                func.unwrap_abs();
-                *self = func;
+                *self = func.into_body().to_owned();
                 return true;
             }
         }
         false
     }
-}
-
-// public methods
-impl<T: Clone + Eq> Exp<T> {
+    /// Eta reduce requires the function's extensionality axiom,
+    /// thus is not enabled by default.
+    pub(crate) fn eta_reduce(&mut self) -> bool {
+        if let Exp::Abs(_, body) = self {
+            if let Exp::App(func, app_body) = &mut **body {
+                if let Exp::Var(Ident(_, code)) = &mut **app_body {
+                    if *code == 1 {
+                        func.lift(1);
+                        *self = *func.to_owned();
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
     /// Remove name of indentifiers, keeping just de bruijn code.
     /// If there are free variables, they will become the same thing.
     pub fn purify(&self) -> Exp<()> {
@@ -219,27 +223,16 @@ impl std::fmt::Display for Exp<String> {
 impl std::fmt::Display for Exp<()> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Exp::Var(ident) => write!(f, "{}", ident.1),
-            Exp::Abs(_, exp) => write!(f, "λ {}", exp),
-            Exp::App(l, exp) => {
-                // 如果 l 是 lambda 那么要加括号
-                match **l {
-                    Exp::Var(_) => write!(f, "{}", l),
-                    _ => write!(f, "({})", l),
-                }?;
-                f.write_char(' ')?;
-                match **exp {
-                    Exp::App(_, _) => write!(f, "({})", exp),
-                    _ => write!(f, "{}", exp),
-                }
-            }
+            Exp::Var(ident) => ident.1.fmt(f),
+            Exp::Abs(_, exp) => write!(f, "λ{}", exp),
+            Exp::App(l, exp) => write!(f, "[{}]({})", l, exp),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::lambda;
+    use crate::{lambda, Error};
 
     #[test]
     fn subst() {
@@ -252,5 +245,25 @@ mod tests {
             format!("{:#}", e),
             "λx. λy. ((λx. λy. x<2>) y<1>) λx. λy. x<2>"
         );
+    }
+    #[test]
+    fn test_eta_reduce() {
+        let mut exp = lambda!(x. y. f x y);
+        assert!(exp.into_body().eta_reduce());
+        assert!(exp.eta_reduce());
+        assert_eq!(exp, lambda!(f));
+    }
+    #[test]
+    fn test_subst_unbounded() -> Result<(), Error> {
+        let mut exp = lambda!(x. y. f x y);
+        exp.subst_unbounded(&String::from("f"), &lambda!(x. (y. z)));
+        exp.simplify()?;
+        assert_eq!(exp, lambda!(x. (y. z)));
+        Ok(())
+    }
+    #[test]
+    fn test_de_bruijn() {
+        let pair = lambda!(x. y. f. f x y);
+        assert_eq!(pair.purify().to_string(), "λλλ[[1](3)](2)");
     }
 }

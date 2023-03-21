@@ -32,7 +32,13 @@ fn main() -> Result<(), Error> {
     let mut y = lambda!(f. (x. f (x x)) (x. f (x x)));
 
     // factorial
-    let fact = lambda!(y. n. {if_n_is_zero} n (f. x. f x) ({mul} n (y ({prev} n))));
+    let mut fact = lambda!(y. n. {if_n_is_zero} n (f. x. f x) ({mul} n (y ({prev} n))));
+
+    println!("simplify fact");
+    while fact.eval_normal_order(true) { 
+        println!("fact = {}", fact);
+    }
+
     let y_fact = lambda!({y} {fact});
 
     let res = lambda!({y_fact} {nats[3]}).purify().simplify()?.to_owned();

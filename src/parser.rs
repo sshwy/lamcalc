@@ -332,7 +332,7 @@ mod tests {
         assert_eq!(tks_str(&tks), s);
         assert_eq!(exp.to_string(), "((λx. λy. ((((((x 即) 是) y) y) 即) 是) x) 色) 空");
         eprintln!("{:#}", exp);
-        exp.eval_normal_order();
+        exp.eval_normal_order(false);
         eprintln!("{:#}", exp);
         exp.simplify()?;
         assert_eq!(exp.to_string(), "((((((色 即) 是) 空) 空) 即) 是) 色");

@@ -88,7 +88,7 @@ mod tests {
         let mut res = lambda!({and} {tt} {tt});
 
         println!("res = {}", res);
-        while res.eval_normal_order() {
+        while res.eval_normal_order(false) {
             println!("res = {}", res);
         }
         assert_eq!(res.to_string(), "λx. λy. x");
