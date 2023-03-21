@@ -1,6 +1,8 @@
 # LamCalc: An implementation for Lambda Calculus 
 
 [![docs.rs](https://img.shields.io/docsrs/lamcalc/latest)](https://docs.rs/lamcalc/latest/lamcalc/)
+[![Crates.io](https://img.shields.io/crates/v/lamcalc)](https://crates.io/crates/lamcalc)
+[![tutorial](https://img.shields.io/badge/tutorial-Github_Pages-green)](https://sshwy.github.io/lamcalc/)
 
 lamcalc implements untyped Lambda Calculus.
 
