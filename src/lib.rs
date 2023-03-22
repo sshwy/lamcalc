@@ -55,8 +55,27 @@ mod tests {
     fn test_clone() {
         let mut tt = lambda!(x.y.x).purify();
         let mut ff = tt.clone();
-        ff.into_body().into_body().into_ident().1 = 1;
-        assert_eq!(tt.into_body().into_body().into_ident().1, 2);
+        ff.into_abs()
+            .unwrap()
+            .1
+            .into_abs()
+            .unwrap()
+            .1
+            .into_ident()
+            .unwrap()
+            .1 = 1;
+        assert_eq!(
+            tt.into_abs()
+                .unwrap()
+                .1
+                .into_abs()
+                .unwrap()
+                .1
+                .into_ident()
+                .unwrap()
+                .1,
+            2
+        );
         println!("tt = {}, ff = {}", tt, ff);
     }
     #[test]

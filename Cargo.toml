@@ -43,6 +43,14 @@ path = "examples/parser.rs"
 name = "church_encoding"
 path = "examples/church_encoding.rs"
 
+[[example]]
+name = "beta_reduce"
+path = "examples/beta_reduce.rs"
+
+[[example]]
+name = "eta_reduce"
+path = "examples/eta_reduce.rs"
+
 [badges]
 # The `maintenance` table indicates the status of the maintenance of
 # the crate. This may be used by a registry, but is currently not

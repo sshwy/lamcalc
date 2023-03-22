@@ -103,7 +103,7 @@ impl<T: Clone + Eq> Exp<T> {
     /// 这会导致被外部捕获的变量 的 de bruijn index + 1
     fn shift_outer_captured_var(&mut self, shift: isize) {
         self.for_each_var(|v, dep| {
-            let ident = v.into_ident();
+            let ident = v.into_ident().unwrap();
             if ident.1 > dep {
                 if shift > 0 {
                     ident.1 = ident.1 + shift as usize
@@ -113,61 +113,74 @@ impl<T: Clone + Eq> Exp<T> {
             }
         });
     }
-    pub(crate) fn beta_reduce(&mut self) -> bool {
-        if let Exp::App(func, body) = self {
-            let mut is_redex = false;
-            if let Exp::Abs(_, _) = &mut **func {
-                is_redex = true;
-            }
-            if is_redex {
-                let mut func = *func.to_owned();
-                func.subst_de(0, body);
-                func.shift_outer_captured_var(-1);
-                // func.lift(1);
-                *self = func.into_body().to_owned();
+    /// Check whether current expression is a beta reduction.
+    pub fn is_beta_redex(&mut self) -> bool {
+        if let Exp::App(func, _) = self {
+            if let Exp::Abs(_, _) = **func {
                 return true;
             }
         }
         false
     }
+    /// Try making beta reduction, return false if nothing changed.
+    pub fn beta_reduce(&mut self) -> bool {
+        if !self.is_beta_redex() {
+            return false;
+        }
+        let (func, body) = self.into_app().unwrap();
+        let mut func = func.to_owned();
+        func.subst_de(0, body);
+        func.shift_outer_captured_var(-1);
+        *self = func.into_abs().unwrap().1.to_owned();
+        true
+    }
+    /// Check whether current expression is a eta reduction.
+    pub fn is_eta_redex(&mut self) -> bool {
+        let body = match self.into_abs() {
+            Some(body) => body,
+            None => return false,
+        }
+        .1;
+        let (func, app_body) = match body.into_app() {
+            Some(r) => r,
+            None => return false,
+        };
+        let ident = match app_body.into_ident() {
+            Some(r) => r,
+            None => return false,
+        };
+        if ident.1 != 1 {
+            return false;
+        }
+        if func
+            .reduce_by_var_with_depth(
+                |v, _, prev| {
+                    if prev.is_some() || v.into_ident().unwrap().1 == 1 {
+                        Some(())
+                    } else {
+                        None
+                    }
+                },
+                0,
+                None,
+            )
+            .is_some()
+        {
+            return false;
+        }
+        true
+    }
     /// Eta reduce requires the function's extensionality axiom,
     /// thus is not enabled by default.
-    pub(crate) fn eta_reduce(&mut self) -> bool {
-        if let Exp::Abs(_, body) = self {
-            if let Exp::App(func, app_body) = &mut **body {
-                // todo!();
-                // let mut flag = Box::new(true);
-                // func.for_each_var(|v, _| if v.into_ident().1 == 1 {
-                //     let mut flag = flag;
-                //     *flag = false;
-                // });
-                if let Exp::Var(Ident(_, code)) = &mut **app_body {
-                    if *code == 1 {
-                        if func
-                            .reduce_by_var_with_depth(
-                                |v, _, prev| {
-                                    if prev.is_some() {
-                                        prev
-                                    } else if v.into_ident().1 == 1 {
-                                        Some(())
-                                    } else {
-                                        None
-                                    }
-                                },
-                                0,
-                                None,
-                            )
-                            .is_none()
-                        {
-                            func.shift_outer_captured_var(-1); // func.lift(1);
-                            *self = *func.to_owned();
-                            return true;
-                        }
-                    }
-                }
-            }
+    pub fn eta_reduce(&mut self) -> bool {
+        if !self.is_eta_redex() {
+            return false;
         }
-        false
+        let (_, body) = self.into_abs().unwrap();
+        let (func, _) = body.into_app().unwrap();
+        func.shift_outer_captured_var(-1); // func.lift(1);
+        *self = func.to_owned();
+        true
     }
     /// Remove name of indentifiers, keeping just de bruijn code.
     /// If there are free variables, they will become the same thing.
@@ -178,25 +191,25 @@ impl<T: Clone + Eq> Exp<T> {
             Exp::App(func, body) => Exp::App(Box::new(func.purify()), Box::new(body.purify())),
         }
     }
-    /// return body for Abs or App, otherwise panic.
-    pub fn into_body(&mut self) -> &mut Self {
+    /// return func and body for App.
+    pub fn into_app(&mut self) -> Option<(&mut Self, &mut Self)> {
         match self {
-            Exp::Abs(_, body) | Exp::App(_, body) => &mut **body,
-            _ => panic!("no body"),
+            Exp::App(func, body) => Some((&mut **func, &mut **body)),
+            _ => None,
         }
     }
-    /// return identifer for Abs or Var, otherwise panic.
-    pub fn into_ident(&mut self) -> &mut Ident<T> {
+    /// return body for Abs.
+    pub fn into_abs(&mut self) -> Option<(&mut Ident<T>, &mut Self)> {
         match self {
-            Exp::Var(ident) | Exp::Abs(ident, _) => ident,
-            _ => panic!("no identifier"),
+            Exp::Abs(ident, body) => Some((ident, &mut **body)),
+            _ => None,
         }
     }
-    /// return function sub expression for App, otherwise panic.
-    pub fn into_func(&mut self) -> &mut Self {
+    /// return identifer for Var.
+    pub fn into_ident(&mut self) -> Option<&mut Ident<T>> {
         match self {
-            Exp::App(func, _) => &mut **func,
-            _ => panic!("no func"),
+            Exp::Var(ident) => Some(ident),
+            _ => None,
         }
     }
 }
@@ -282,12 +295,12 @@ mod tests {
 
         let mut exp = lambda!(z. x. (y. x y) z);
         {
-            let x = exp.into_body().into_body();
+            let x = exp.into_abs().unwrap().1.into_abs().unwrap().1;
             if let Exp::App(func, body) = x {
                 func.subst_de(0, &body);
                 func.shift_outer_captured_var(-1);
                 // func.lift(1);
-                *x = func.into_body().to_owned();
+                *x = func.into_abs().unwrap().1.to_owned();
             }
         }
         assert_eq!(exp.purify().to_string(), "λλ[1](2)");
@@ -295,7 +308,7 @@ mod tests {
     #[test]
     fn test_eta_reduce() {
         let mut exp = lambda!(x. y. f x y);
-        assert!(exp.into_body().eta_reduce());
+        assert!(exp.into_abs().unwrap().1.eta_reduce());
         assert!(exp.eta_reduce());
         assert_eq!(exp, lambda!(f));
         let mut exp2 = lambda!(x. x x);
@@ -313,5 +326,12 @@ mod tests {
     fn test_de_bruijn() {
         let pair = lambda!(x. y. f. f x y);
         assert_eq!(pair.purify().to_string(), "λλλ[[1](3)](2)");
+    }
+    #[test]
+    fn test_beta_reduce() {
+        let mut exp = lambda!((x. y. x) z);
+        assert!(exp.is_beta_redex());
+        assert!(exp.beta_reduce());
+        assert_eq!(exp, lambda!(y.z));
     }
 }
