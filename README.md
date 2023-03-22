@@ -17,7 +17,7 @@ fn main () -> Result<(), Error> {
     // define using macro
     let tt = lambda!(x. y. x); // use macro to define lambda
     let ff = lambda!(x. (y. y)); // add parentheses for clarity
-    let and = lambda!(x.y.x y x); // space between dot are not necessary
+    let and = lambda!(x.y.x y x); // space between dots are not necessary
 
     // multiple printing format
     println!("and = {}", and);   // print lambda
@@ -39,3 +39,5 @@ fn main () -> Result<(), Error> {
     Ok(())
 }
 ```
+
+See `examples/` for more.
