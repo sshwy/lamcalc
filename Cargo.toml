@@ -26,6 +26,7 @@ wasm-bindgen = { version = "0.2", optional = true }
 
 [features]
 wasm = ["dep:serde-wasm-bindgen", "dep:wasm-bindgen"]
+experimental = []
 
 [package.metadata.docs.rs]
 features = ["wasm"]

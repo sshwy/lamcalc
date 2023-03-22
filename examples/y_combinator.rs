@@ -13,7 +13,7 @@ fn main() -> Result<(), Error> {
         nats.push(sx);
         assert_eq!(
             lambda!({prev} {nats[i]}).simplify()?.to_string(),
-            { &nats[i - 1] }.to_string()
+            nats[i - 1].to_string()
         );
     }
 
