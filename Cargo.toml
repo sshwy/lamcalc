@@ -10,7 +10,7 @@ license = "MIT"
 name = "lamcalc"
 readme = "README.md"
 repository = "https://github.com/sshwy/lamcalc"
-version = "0.4.4"
+version = "0.4.5"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
