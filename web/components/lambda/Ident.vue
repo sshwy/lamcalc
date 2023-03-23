@@ -12,7 +12,9 @@ const deco = inject(decorKey);
 </script>
 
 <template>
-  <span v-if="alpha && deco.betaRedex?.alpha === alpha" class="lambda-ident-mark" :title="de.toString()">{{ ident }}</span>
-  <span v-else-if="alpha && deco.etaRedex?.alpha === alpha" class="lambda-ident-mark" :title="de.toString()">{{ ident }}</span>
+  <span v-if="alpha && deco.betaRedex?.alpha === alpha" class="lambda-ident-mark" :title="de.toString()">{{ ident
+  }}</span>
+  <span v-else-if="alpha && deco.etaRedex?.alpha === alpha" class="lambda-ident-mark" :title="de.toString()">{{ ident
+  }}</span>
   <span v-else class="lambda-ident" :title="de.toString()">{{ ident }}</span>
 </template>

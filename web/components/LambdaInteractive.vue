@@ -7,6 +7,8 @@ import { LambdaExp } from './lambda';
 const props = defineProps<{
   exp: string
   file?: string
+  // 是否允许 eta reduce
+  etaReduce?: boolean
 }>()
 
 const data = reactive({
@@ -55,6 +57,7 @@ provide(betaReduceKey, (id, step_id) => {
   calc.beta_reduce(step_id, id)
   data.steps = calc.history()
 })
+
 provide(etaReduceKey, (id, step_id) => {
   console.log('reduce', step_id, id)
   calc.eta_reduce(step_id, id)
@@ -74,6 +77,7 @@ export const etaReduceKey = Symbol() as InjectionKey<(redex_id: number, step_id:
   <pre v-if="data.error" class="error">{{ data.error }}</pre>
   <TransitionGroup v-else name="lams">
     <LambdaExp v-for="step, step_id in data.steps" :key="step.id" :decoration="{
+      allowEtaReduce: etaReduce || false,
       betaRedex: step.last_action?.BetaReduce,
       etaRedex: step.last_action?.EtaReduce,
       replacedName: step.last_action?.SubstUnbounded,

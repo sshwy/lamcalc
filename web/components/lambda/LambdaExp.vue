@@ -10,6 +10,7 @@ export type Decoration = {
     alpha: number,
   }
   replacedName?: string
+  allowEtaReduce: boolean
   names: string[]
   step_id: number,
 }

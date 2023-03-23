@@ -24,7 +24,7 @@ const replaceTrigger = inject(replaceNameKey)
 const betaReduceTrigger = inject(betaReduceKey)
 const etaReduceTrigger = inject(etaReduceKey)
 
-const onVarClick = (v: {ident: string, alpha_id: number}) => {
+const onVarClick = (v: { ident: string, alpha_id: number }) => {
   if (deco.value.names.includes(v.ident)) {
     if (replaceTrigger) replaceTrigger(v.ident, v.alpha_id, deco.value.step_id)
   }
@@ -46,7 +46,8 @@ const onEtaReduce = useDebounceFn((redex: number) => {
     <span v-if="inner.Abs" :class="['lambda-abs',
       deco.etaRedex && (deco.etaRedex.redex === inner.Abs.eta_redex) ? 'lambda-eta-redex' : ''
     ]">
-      <AbsHead @beta-reduce="onBetaReduce" @eta-reduce="onEtaReduce" :redex-id="redexId" :eta-redex-id="inner.Abs.eta_redex">
+      <AbsHead @beta-reduce="onBetaReduce" @eta-reduce="onEtaReduce" :redex-id="redexId"
+        :eta-redex-id="deco.allowEtaReduce ? inner.Abs.eta_redex : undefined">
         <span class="lambda-lambda">λ</span>
         <Ident :alpha="inner.Abs.alpha_id" :ident="inner.Abs.ident" :de="0" />
       </AbsHead>
