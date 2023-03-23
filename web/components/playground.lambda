@@ -1,0 +1,11 @@
+Y = \f. (\x. f (x x)) \x. f (x x)
+I = \z. z
+T = \x. \y. x
+F = \x. \y. y
+O = \f. \x. x
+S = \n. \f. \x. f (n f x)
+One = \f. \x. f x
+Two = \f. \x. f (f x)
+PLUS = \n. \m. \f. \x. n f (m f x)
+Mul = \n. \m. \f. \x. n (m f) x
+Exp = \n. \m. n (Mul m) One

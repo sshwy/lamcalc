@@ -1,25 +1,12 @@
 <script setup lang="ts">
+import { data } from './playground.data'
 // import { LambdaExp } from './lambda';
 import LambdaInteractive from './LambdaInteractive.vue';
 import { ref } from 'vue';
 import { useDebounceFn } from '@vueuse/core'
 
-// 不能直接 import 函数，不然 wasm 初始化的部分会被 tree-shake 删掉
-// import * as lamcalc from 'lamcalc'
-// const { Calculator } = lamcalc;
-
 const inputContent = ref('Y I')
 const expStr = ref(inputContent.value)
-
-const file = `
-Y = \\f. (\\x. f (x x)) \\x. f (x x)
-I = \\z. z
-T = \\x. \\y. x
-F = \\x. \\y. y
-O = \\f. \\x. x
-S = \\n. \\f. \\x. f (n f x)
-PLUS = \\n. \\m. \\f. \\x. n f (m f x)
-`
 
 const initWithStr = useDebounceFn((s: string) => {
   expStr.value = s
@@ -35,7 +22,7 @@ const onInput = (event: Event) => {
   <div class="input-wrapper">
     <input type="text" v-model="inputContent" placeholder="enter your lambda" @input="onInput" />
   </div>
-  <LambdaInteractive :exp="expStr" :file="file" />
+  <LambdaInteractive :exp="expStr" :file="data" />
 </template>
 
 <style>
