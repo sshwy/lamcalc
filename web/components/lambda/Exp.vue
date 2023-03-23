@@ -24,9 +24,9 @@ const replaceTrigger = inject(replaceNameKey)
 const betaReduceTrigger = inject(betaReduceKey)
 const etaReduceTrigger = inject(etaReduceKey)
 
-const onVarClick = (name: string) => {
-  if (deco.value.names.includes(name)) {
-    if (replaceTrigger) replaceTrigger(name, deco.value.step_id)
+const onVarClick = (v: {ident: string, alpha_id: number}) => {
+  if (deco.value.names.includes(v.ident)) {
+    if (replaceTrigger) replaceTrigger(v.ident, v.alpha_id, deco.value.step_id)
   }
 }
 const onBetaReduce = useDebounceFn((redex: number) => {
@@ -39,8 +39,6 @@ const onEtaReduce = useDebounceFn((redex: number) => {
 }, 50)
 </script>
 
-<!-- :class="deco.lastRedex && inner.Abs.alpha_id === deco.lastRedex[1] ? 'lambda-ident-mark' : ''"  -->
-<!-- :class="deco.lastRedex && inner.Var.alpha_id === deco.lastRedex[1] ? 'lambda-ident-mark' : ''" -->
 <template>
   <span ref="self" class="lambda">
     <span v-if="parentheses" :class="`lambda-bracket-${bracketLevel % 3}`">(</span>
@@ -63,7 +61,7 @@ const onEtaReduce = useDebounceFn((redex: number) => {
       <Exp class="lambda-app-body" ref="param" v-bind="inner.App.body" :bracket-level="nextLevel" />
     </span>
     <span v-else-if="inner.Var" :class="[deco.names.includes(inner.Var.ident) ?
-      'lambda-const' : 'lambda-var']" @click="onVarClick(inner.Var.ident)">
+      'lambda-const' : 'lambda-var']" @click="onVarClick(inner.Var)">
       <Ident :alpha="inner.Var.alpha_id" :ident="inner.Var.ident" :de="inner.Var.code" />
     </span>
 

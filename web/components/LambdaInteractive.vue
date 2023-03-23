@@ -45,9 +45,9 @@ watch([props], ([cur]) => {
   }
 })
 
-provide(replaceNameKey, (name, step_id) => {
+provide(replaceNameKey, (name, alpha, step_id) => {
   console.log('replace', step_id, name)
-  calc.replace_def_occurrance(step_id, name)
+  calc.replace_def_alpha(step_id, name, alpha)
   data.steps = calc.history()
 })
 provide(betaReduceKey, (id, step_id) => {
@@ -65,7 +65,7 @@ provide(etaReduceKey, (id, step_id) => {
 
 <script lang="ts">
 import type { InjectionKey } from 'vue'
-export const replaceNameKey = Symbol() as InjectionKey<(name: string, step_id: number) => void>;
+export const replaceNameKey = Symbol() as InjectionKey<(name: string, alpha_id: number, step_id: number) => void>;
 export const betaReduceKey = Symbol() as InjectionKey<(redex_id: number, step_id: number) => void>;
 export const etaReduceKey = Symbol() as InjectionKey<(redex_id: number, step_id: number) => void>;
 </script>
