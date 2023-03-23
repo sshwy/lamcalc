@@ -19,6 +19,9 @@ pub enum Error {
     /// 内部表达式类型错误
     #[cfg(feature = "wasm")]
     InvalidInnerType,
+    /// 替换自由变量时没有找到
+    #[cfg(feature = "wasm")]
+    VarNotFound(String, usize),
 }
 
 impl std::fmt::Display for Error {
@@ -34,9 +37,11 @@ impl std::fmt::Display for Error {
             #[cfg(feature = "wasm")]
             Error::InvalidDisplayExp => write!(f, "无效的表达式"),
             #[cfg(feature = "wasm")]
-            Error::InvalidInnerType => write!(f, "内部表达式类型错误")
+            Error::InvalidInnerType => write!(f, "内部表达式类型错误"),
+            #[cfg(feature = "wasm")]
+            Error::VarNotFound(name, id) => write!(f, "未找到自由变量 {}, alpha_id = {}", name, id),
         }
     }
 }
 
-impl std::error::Error for Error{}
+impl std::error::Error for Error {}

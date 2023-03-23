@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::{parser, wasm::exp::JsExp, Error, Exp};
 use serde::Serialize;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+// use web_sys::console;
 
 #[derive(Clone, Serialize)]
 enum Mutation {
@@ -15,7 +16,10 @@ enum Mutation {
         redex: usize,
         alpha: usize,
     },
-    SubstUnbounded(String),
+    SubstAlpha {
+        alpha: usize,
+        name: String,
+    },
 }
 
 #[derive(Clone, Serialize)]
@@ -66,12 +70,26 @@ impl Step {
             last_action: None,
         })
     }
-    /// replace free variables with expression by name
-    fn replace_free_variable(&mut self, name: &str, exp: &Exp<String>) -> Result<Step, Error> {
+    /// replace free variables with expression by alpha_id
+    fn replace_by_alpha_id(
+        &mut self,
+        id: usize,
+        name: String,
+        exp: &Exp<String>,
+    ) -> Result<Step, Error> {
+        // console::debug_1(
+        //     &format!("replace id={} name={} exp={}, self={:?}", id, name, exp, self.raw_exp)
+        //         .as_str()
+        //         .into(),
+        // );
         let mut raw_exp = self.raw_exp.clone();
-        let name = name.to_string();
-        raw_exp.subst_unbounded(&name, exp);
-        self.last_action = Some(Mutation::SubstUnbounded(name));
+        let var = match raw_exp.find_var_by_alpha_id(&self.display_exp, id) {
+            None => return Err(Error::VarNotFound(name, id)),
+            Some(r) => r,
+        };
+        assert!(var.into_ident().unwrap().0 == name);
+        *var = exp.to_owned();
+        self.last_action = Some(Mutation::SubstAlpha { alpha: id, name });
         let display_exp = JsExp::from_exp(&raw_exp);
         let id = raw_exp.to_string();
         Ok(Self {
@@ -146,15 +164,20 @@ impl Calculator {
         self.steps.push(cur);
         Ok(())
     }
-    /// Replace free variable with `name` with corresponding expresion in defs
-    pub fn replace_def_occurrance(&mut self, step: usize, name: &str) -> Result<(), String> {
+    /// Replace free variable with alpha_id with corresponding expresion in defs
+    pub fn replace_def_alpha(
+        &mut self,
+        step: usize,
+        name: &str,
+        alpha_id: usize,
+    ) -> Result<(), String> {
         let mut last = self.trim_steps(step)?;
         let exp = self
             .defs
             .get(name)
             .ok_or(format!("expression not found name = {}", name))?;
         let cur = last
-            .replace_free_variable(name, exp)
+            .replace_by_alpha_id(alpha_id, name.to_string(), exp)
             .map_err(|e| format!("化简错误：{}", e))?;
         self.steps.push(last);
         self.steps.push(cur);

@@ -24,8 +24,13 @@ serde = { version = "1.0", features = ["derive"] }
 serde-wasm-bindgen = { version = "0.4", optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
 
+[dependencies.web-sys]
+optional = true
+version = "0.3.4"
+features = [ "console" ]
+
 [features]
-wasm = ["dep:serde-wasm-bindgen", "dep:wasm-bindgen"]
+wasm = ["dep:serde-wasm-bindgen", "dep:wasm-bindgen", "dep:web-sys"]
 experimental = []
 
 [package.metadata.docs.rs]

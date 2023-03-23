@@ -118,22 +118,21 @@ impl JsExp {
         // setoid_counter: &mut usize,
     ) {
         match &mut self.inner {
-            InnerExp::Var(_) => {}
+            InnerExp::Var(var) => {
+                // free variable
+                if var.alpha_id == 0 {
+                    *counter += 1;
+                    var.alpha_id = *counter
+                }
+            }
             InnerExp::Abs(abs) => {
                 abs.in_beta_redex = is_app_func;
                 if is_app_func || !is_tail {
                     self.parentheses = true;
                 }
-                abs.body.decorate(
-                    false,
-                    false,
-                    self.parentheses || is_tail,
-                    counter,
-                    // redex_counter,
-                    // setoid_counter,
-                );
-                *counter = *counter + 1;
-                // *setoid_counter = *setoid_counter + 1;
+                abs.body
+                    .decorate(false, false, self.parentheses || is_tail, counter);
+                *counter += 1;
                 abs.alpha_id = *counter;
                 abs.body.for_each_captured_by(
                     1,
@@ -163,16 +162,10 @@ impl JsExp {
                     self.parentheses = true;
                 }
                 app.func.decorate(true, false, false, counter);
-                app.body.decorate(
-                    false,
-                    true,
-                    self.parentheses || is_tail,
-                    counter,
-                    // redex_counter,
-                    // setoid_counter,
-                );
+                app.body
+                    .decorate(false, true, self.parentheses || is_tail, counter);
                 if let InnerExp::Abs(_) = app.func.inner {
-                    *counter = *counter + 1;
+                    *counter += 1;
                     // *redex_counter = *redex_counter + 1;
                     app.beta_redex = Some(*counter)
                 }
@@ -198,9 +191,34 @@ impl JsExp {
             _ => Err(Error::InvalidInnerType),
         }
     }
+    fn into_var(&self) -> Result<&Var, Error> {
+        match &self.inner {
+            InnerExp::Var(v) => Ok(v),
+            _ => Err(Error::InvalidInnerType),
+        }
+    }
 }
 
 impl Exp<String> {
+    // fn walk_reduce<F, D>(&mut self, jsexp: &JsExp, f: F, init: D) -> D
+    // where
+    //     F: Fn(&mut Self, &JsExp, D) -> D + Clone,
+    // {
+    //     let data = f(self, jsexp, init);
+    //     match self {
+    //         Exp::Var(_) => data,
+    //         Exp::Abs(_, body) => {
+    //             let abs = jsexp.into_abs_ref().unwrap();
+    //             body.walk_reduce(&abs.body, f, data)
+    //         }
+    //         Exp::App(func, body) => {
+    //             let app = jsexp.into_app_ref().unwrap();
+    //             let data = func.walk_reduce(&app.func, f.clone(), data);
+    //             body.walk_reduce(&app.body, f, data)
+    //         }
+    //     }
+    // }
+
     /// Resolve beta-redex based on it's `display_exp`
     ///
     /// this operation requires mutable reference of `display_exp`
@@ -263,6 +281,33 @@ impl Exp<String> {
             }
         }
     }
+    pub(crate) fn find_var_by_alpha_id(
+        &mut self,
+        display_exp: &JsExp,
+        id: usize,
+    ) -> Option<&mut Self> {
+        match self {
+            Exp::Var(_) => {
+                if let Ok(var) = display_exp.into_var() {
+                    if var.alpha_id == id {
+                        return Some(self);
+                    }
+                }
+                None
+            }
+            Exp::Abs(_, body) => {
+                let abs = display_exp.into_abs_ref().unwrap();
+                body.find_var_by_alpha_id(&abs.body, id)
+            }
+            Exp::App(func, body) => {
+                let app = display_exp.into_app_ref().unwrap();
+                match func.find_var_by_alpha_id(&app.func, id) {
+                    None => body.find_var_by_alpha_id(&app.body, id),
+                    r => r,
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -271,7 +316,7 @@ mod tests {
 
     use super::{Abs, App, InnerExp, JsExp, Var};
     impl JsExp {
-        fn into_var(&mut self) -> &mut Var {
+        fn into_var_mut(&mut self) -> &mut Var {
             match &mut self.inner {
                 InnerExp::Var(var) => var,
                 _ => panic!("not var"),
@@ -307,7 +352,7 @@ mod tests {
                     .func
                     .into_app_mut()
                     .func
-                    .into_var()
+                    .into_var_mut()
                     .alpha_id
             );
             assert_eq!(
@@ -323,7 +368,7 @@ mod tests {
                     .func
                     .into_app_mut()
                     .func
-                    .into_var()
+                    .into_var_mut()
                     .alpha_id
             );
         }
@@ -336,7 +381,7 @@ mod tests {
                 .into_app_mut()
                 .body
                 .into_abs_mut();
-            assert_eq!(abs.alpha_id, abs.body.into_var().alpha_id);
+            assert_eq!(abs.alpha_id, abs.body.into_var_mut().alpha_id);
         }
     }
 }
