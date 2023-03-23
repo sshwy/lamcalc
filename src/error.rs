@@ -12,7 +12,7 @@ pub enum Error {
     RedexNotFound,
     /// 无效 redex
     #[cfg(feature = "wasm")]
-    InvalidRedex,
+    InvalidRedex(usize, String),
     /// 无效表达式
     #[cfg(feature = "wasm")]
     InvalidDisplayExp,
@@ -30,7 +30,7 @@ impl std::fmt::Display for Error {
             #[cfg(feature = "wasm")]
             Error::RedexNotFound => write!(f, "找不到 beta-redex"),
             #[cfg(feature = "wasm")]
-            Error::InvalidRedex => write!(f, "无效的 redex"),
+            Error::InvalidRedex(id, s) => write!(f, "无效的 redex(id = {}): {}", id, s),
             #[cfg(feature = "wasm")]
             Error::InvalidDisplayExp => write!(f, "无效的表达式"),
             #[cfg(feature = "wasm")]

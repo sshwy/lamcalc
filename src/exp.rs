@@ -32,7 +32,15 @@ impl<T: Clone + Eq> Exp<T> {
     // iterate over each variable
     fn reduce_by_var_with_depth<F, D>(&mut self, f: F, depth: usize, sum: Option<D>) -> Option<D>
     where
-        F: Fn(&mut Exp<T>, usize, Option<D>) -> Option<D> + Clone,
+        F: Fn(
+                // variable expression
+                &mut Exp<T>,
+                // number of abstractions containing this variable
+                usize,
+                // result sum
+                Option<D>,
+            ) -> Option<D>
+            + Clone,
     {
         match self {
             Exp::Var(_) => f(self, depth, sum),
@@ -154,8 +162,8 @@ impl<T: Clone + Eq> Exp<T> {
         }
         if func
             .reduce_by_var_with_depth(
-                |v, _, prev| {
-                    if prev.is_some() || v.into_ident().unwrap().1 == 1 {
+                |v, dep, prev| {
+                    if prev.is_some() || v.into_ident().unwrap().1 == 1 + dep {
                         Some(())
                     } else {
                         None

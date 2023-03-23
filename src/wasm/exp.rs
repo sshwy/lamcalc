@@ -220,7 +220,7 @@ impl Exp<String> {
                         // display_exp.marked = true;
                         return Ok(alpha_id);
                     }
-                    return Err(Error::InvalidRedex);
+                    return Err(Error::InvalidRedex(id, self.to_string()));
                 }
             }
         }
@@ -248,7 +248,7 @@ impl Exp<String> {
                 if self.eta_reduce() {
                     return Ok(abs.alpha_id);
                 }
-                return Err(Error::InvalidRedex);
+                return Err(Error::InvalidRedex(id, format!("{:?}", self)));
             }
         }
         match self {
