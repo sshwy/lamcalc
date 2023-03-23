@@ -110,6 +110,7 @@ body {
   color: var(--vp-c-lambda-ident);
 }
 .lambda-ident-mark {
+  color: var(--vp-c-lambda-ident);
   background: var(--vp-c-lambda-redex);
 }
 
@@ -123,6 +124,9 @@ body {
 .lambda-abs-head-redex {
   cursor: pointer;
   text-decoration: underline;
+}
+.lambda-def-line {
+  margin: 0.5em 0;
 }
 
 .lams-move,

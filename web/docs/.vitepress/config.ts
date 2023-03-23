@@ -52,8 +52,11 @@ const macros: {
   pattern: /dL`(.*?)`/g,
   replacer: (_, $1) => `<LambdaDef block exp="${$1}" />`
 }, {
+  pattern: /^```lambda-defs\n^([\s\S]*?)^```$/gm,
+  replacer: (_, $1) => `<LambdaDefs file="${$1}" />`
+}, {
   pattern: /^```lambda-interactive\n^([\s\S]*?)^---(.*?)\n^(.*?)\n```$/gm,
-  replacer: (_$, ctxt, _$2, exp) => `<ClientOnly>` 
+  replacer: (_$, ctxt, _$2, exp) => `<ClientOnly>`
     + `<LambdaInteractive file="${ctxt}" exp="${exp}" />`
     + `</ClientOnly>`
 }]
