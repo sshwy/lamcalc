@@ -40,7 +40,7 @@ jobs:
           corepack prepare yarn@stable --activate
 
       - name: Build WASM
-        run: wasm-pack build --all-features
+        run: wasm-pack build --features wasm
 
       - name: Build Docs
         working-directory: ./web
