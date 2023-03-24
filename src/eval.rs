@@ -6,9 +6,9 @@ use crate::{Error, Exp};
 /// Profile data (experimental)
 #[cfg(feature = "experimental")]
 pub struct ProfileData {
-    pub beta_reduce_counter: usize,
-    pub eta_reduce_counter: usize,
-    pub eval_fn_counter: usize,
+    pub beta_reduce_counter: u64,
+    pub eta_reduce_counter: u64,
+    pub eval_fn_counter: u64,
 }
 #[cfg(feature = "experimental")]
 impl ProfileData {

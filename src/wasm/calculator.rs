@@ -9,15 +9,15 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 enum Mutation {
     /// redex_id and alpha_id
     BetaReduce {
-        redex: usize,
-        alpha: usize,
+        redex: u32,
+        alpha: u32,
     },
     EtaReduce {
-        redex: usize,
-        alpha: usize,
+        redex: u32,
+        alpha: u32,
     },
     SubstAlpha {
-        alpha: usize,
+        alpha: u32,
         name: String,
     },
 }
@@ -28,8 +28,6 @@ struct Step {
     raw_exp: Exp<String>,
     display_exp: JsExp,
     last_action: Option<Mutation>,
-    // last_reduce: Option<(usize, usize)>,
-    // replaced_name: Option<String>,
     /// id for vue
     id: String,
 }
@@ -38,7 +36,7 @@ impl Step {
     /// Resolve beta-redex with `id` to get the following step
     ///
     /// Require mutable reference to mark the modified part of `display_exp`
-    fn beta_reduce_by_id(&mut self, id: usize) -> Result<Step, Error> {
+    fn beta_reduce_by_id(&mut self, id: u32) -> Result<Step, Error> {
         let mut raw_exp = self.raw_exp.clone();
         let alpha_id = raw_exp.beta_reduce_by_id(&self.display_exp, id)?;
         self.last_action = Some(Mutation::BetaReduce {
@@ -54,7 +52,7 @@ impl Step {
             last_action: None,
         })
     }
-    fn eta_reduce_by_id(&mut self, id: usize) -> Result<Step, Error> {
+    fn eta_reduce_by_id(&mut self, id: u32) -> Result<Step, Error> {
         let mut raw_exp = self.raw_exp.clone();
         let alpha_id = raw_exp.eta_reduce_by_id(&self.display_exp, id)?;
         self.last_action = Some(Mutation::EtaReduce {
@@ -73,7 +71,7 @@ impl Step {
     /// replace free variables with expression by alpha_id
     fn replace_by_alpha_id(
         &mut self,
-        id: usize,
+        id: u32,
         name: String,
         exp: &Exp<String>,
     ) -> Result<Step, Error> {
@@ -145,7 +143,7 @@ impl Calculator {
     }
 
     /// Resolve beta reduction for the `steps`-th expression
-    pub fn beta_reduce(&mut self, step: usize, redex_id: usize) -> Result<(), String> {
+    pub fn beta_reduce(&mut self, step: usize, redex_id: u32) -> Result<(), String> {
         let mut last = self.trim_steps(step)?;
         let cur = last
             .beta_reduce_by_id(redex_id)
@@ -155,7 +153,7 @@ impl Calculator {
         Ok(())
     }
     /// Resolve beta reduction for the `steps`-th expression
-    pub fn eta_reduce(&mut self, step: usize, id: usize) -> Result<(), String> {
+    pub fn eta_reduce(&mut self, step: usize, id: u32) -> Result<(), String> {
         let mut last = self.trim_steps(step)?;
         let cur = last
             .eta_reduce_by_id(id)
@@ -169,7 +167,7 @@ impl Calculator {
         &mut self,
         step: usize,
         name: &str,
-        alpha_id: usize,
+        alpha_id: u32,
     ) -> Result<(), String> {
         let mut last = self.trim_steps(step)?;
         let exp = self

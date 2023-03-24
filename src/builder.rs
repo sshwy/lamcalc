@@ -5,7 +5,7 @@ impl<T: Clone + Eq> Exp<T> {
     /// 标识符与 var 相同的 unbounded 变量绑定为 var
     ///
     /// de_bruijn_index 的初值为 0
-    fn bind(&mut self, id: &T, de_bruijn_index: usize) -> &mut Self {
+    fn bind(&mut self, id: &T, de_bruijn_index: u32) -> &mut Self {
         match self {
             Exp::Var(var) => {
                 if var.0 == *id {

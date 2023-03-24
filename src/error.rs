@@ -12,7 +12,7 @@ pub enum Error {
     RedexNotFound,
     /// 无效 redex
     #[cfg(feature = "wasm")]
-    InvalidRedex(usize, String),
+    InvalidRedex(u32, String),
     /// 无效表达式
     #[cfg(feature = "wasm")]
     InvalidDisplayExp,
@@ -21,7 +21,7 @@ pub enum Error {
     InvalidInnerType,
     /// 替换自由变量时没有找到
     #[cfg(feature = "wasm")]
-    VarNotFound(String, usize),
+    VarNotFound(String, u32),
 }
 
 impl std::fmt::Display for Error {

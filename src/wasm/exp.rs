@@ -9,9 +9,9 @@ pub struct Var {
     /// identifier
     pub ident: String,
     /// de bruijn code
-    pub code: usize,
+    pub code: u32,
     /// alpha-equivalence setoid id
-    pub alpha_id: usize,
+    pub alpha_id: u32,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -20,13 +20,13 @@ pub struct Abs {
     /// identifier
     pub ident: String,
     /// setoid id
-    pub alpha_id: usize,
+    pub alpha_id: u32,
     /// sub expression
     pub body: Box<JsExp>,
     /// whether it's in a beta-redex
     pub in_beta_redex: bool,
     /// whether eta reduceable
-    pub eta_redex: Option<usize>,
+    pub eta_redex: Option<u32>,
 }
 #[derive(Serialize, Debug, Clone)]
 /// application data
@@ -36,7 +36,7 @@ pub struct App {
     /// the latter sub expression
     pub body: Box<JsExp>,
     /// id of its beta_redex (greater than 0)
-    pub beta_redex: Option<usize>,
+    pub beta_redex: Option<u32>,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -90,7 +90,7 @@ impl JsExp {
             },
         }
     }
-    fn for_each_captured_by<'a, F, D>(&'a mut self, de: usize, f: F, sum: Option<D>) -> Option<D>
+    fn for_each_captured_by<'a, F, D>(&'a mut self, de: u32, f: F, sum: Option<D>) -> Option<D>
     where
         F: Fn(&mut Var, Option<D>) -> Option<D> + Clone,
     {
@@ -114,8 +114,7 @@ impl JsExp {
         is_app_func: bool,
         is_app_body: bool,
         is_tail: bool,
-        counter: &mut usize,
-        // setoid_counter: &mut usize,
+        counter: &mut u32,
     ) {
         match &mut self.inner {
             InnerExp::Var(var) => {
@@ -228,8 +227,8 @@ impl Exp<String> {
     pub(crate) fn beta_reduce_by_id(
         &mut self,
         display_exp: &JsExp,
-        id: usize,
-    ) -> Result<usize, Error> {
+        id: u32,
+    ) -> Result<u32, Error> {
         if let InnerExp::App(app) = &display_exp.inner {
             if let Some(beta_redex) = app.beta_redex {
                 let alpha_id = app.func.into_abs_ref()?.alpha_id;
@@ -258,8 +257,8 @@ impl Exp<String> {
     pub(crate) fn eta_reduce_by_id(
         &mut self,
         display_exp: &JsExp,
-        id: usize,
-    ) -> Result<usize, Error> {
+        id: u32,
+    ) -> Result<u32, Error> {
         if let Exp::Abs(_, _) = self {
             let abs = display_exp.into_abs_ref()?;
             if abs.eta_redex.is_some() && abs.eta_redex.unwrap() == id {
@@ -284,7 +283,7 @@ impl Exp<String> {
     pub(crate) fn find_var_by_alpha_id(
         &mut self,
         display_exp: &JsExp,
-        id: usize,
+        id: u32,
     ) -> Option<&mut Self> {
         match self {
             Exp::Var(_) => {

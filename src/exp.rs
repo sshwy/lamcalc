@@ -6,7 +6,7 @@ use std::fmt::Write;
 /// for the second field, where 0 is for free variables and others are for
 /// bounded/captured variables.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Ident<T: Clone + Eq>(pub T, pub usize);
+pub struct Ident<T: Clone + Eq>(pub T, pub u32);
 
 /// Expression in Lambda Calculus.
 ///
@@ -30,13 +30,13 @@ pub enum Exp<T: Clone + Eq> {
 
 impl<T: Clone + Eq> Exp<T> {
     // iterate over each variable
-    fn reduce_by_var_with_depth<F, D>(&mut self, f: F, depth: usize, sum: Option<D>) -> Option<D>
+    fn reduce_by_var_with_depth<F, D>(&mut self, f: F, depth: u32, sum: Option<D>) -> Option<D>
     where
         F: Fn(
                 // variable expression
                 &mut Exp<T>,
                 // number of abstractions containing this variable
-                usize,
+                u32,
                 // result sum
                 Option<D>,
             ) -> Option<D>
@@ -56,7 +56,7 @@ impl<T: Clone + Eq> Exp<T> {
     /// containing this variable.
     pub fn for_each_var<F>(&mut self, f: F)
     where
-        F: Fn(&mut Exp<T>, usize) -> () + Clone,
+        F: Fn(&mut Exp<T>, u32) -> () + Clone,
     {
         self.reduce_by_var_with_depth(|v, dep, _| Some(f(v, dep)), 0, None);
     }
@@ -75,7 +75,7 @@ impl<T: Clone + Eq> Exp<T> {
     /// 在不允许表达式中出现自由变量的情况下（遇到了就忽略），被替换的变量
     /// 的 de_bruijn_index 总是 >0，并且我们总是将某个 abstraction 的参数
     /// 进行替换。因此只用记 de_bruijn_index 即可。
-    fn subst_de(&mut self, de_index: usize, exp: &Exp<T>) -> &mut Self {
+    fn subst_de(&mut self, de_index: u32, exp: &Exp<T>) -> &mut Self {
         self.for_each_var(|v, dep| {
             if let Exp::Var(ident) = &v {
                 if ident.1 == de_index + dep {
@@ -87,23 +87,6 @@ impl<T: Clone + Eq> Exp<T> {
         });
         self
     }
-    // 将表达式中被**外部**捕获的变量的 code 都减少 1
-    // fn lift(&mut self, min_de: usize) {
-    //     match self {
-    //         Exp::Var(Ident(_, code)) => {
-    //             if *code >= min_de {
-    //                 *code = *code - 1;
-    //             }
-    //         }
-    //         Exp::Abs(_, body) => {
-    //             body.lift(min_de + 1);
-    //         }
-    //         Exp::App(func, body) => {
-    //             func.lift(min_de);
-    //             body.lift(min_de);
-    //         }
-    //     }
-    // }
     /// alter the de bruijn index of outer captured variable
     /// by a uniform shift.
     ///
@@ -114,9 +97,9 @@ impl<T: Clone + Eq> Exp<T> {
             let ident = v.into_ident().unwrap();
             if ident.1 > dep {
                 if shift > 0 {
-                    ident.1 = ident.1 + shift as usize
+                    ident.1 = ident.1 + shift as u32
                 } else {
-                    ident.1 = ident.1 - (-shift) as usize
+                    ident.1 = ident.1 - (-shift) as u32
                 }
             }
         });
