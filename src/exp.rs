@@ -30,7 +30,7 @@ pub enum Exp<T: Clone + Eq> {
 
 impl<T: Clone + Eq> Exp<T> {
     // iterate over each variable
-    fn reduce_by_var_with_depth<F, D>(&mut self, f: F, depth: u32, sum: Option<D>) -> Option<D>
+    fn reduce_by_var_with_depth<F, D>(&mut self, f: F, depth: u32, sum: D) -> D
     where
         F: Fn(
                 // variable expression
@@ -38,8 +38,8 @@ impl<T: Clone + Eq> Exp<T> {
                 // number of abstractions containing this variable
                 u32,
                 // result sum
-                Option<D>,
-            ) -> Option<D>
+                D,
+            ) -> D
             + Clone,
     {
         match self {
@@ -127,39 +127,23 @@ impl<T: Clone + Eq> Exp<T> {
     }
     /// Check whether current expression is a eta reduction.
     pub fn is_eta_redex(&mut self) -> bool {
-        let body = match self.into_abs() {
-            Some(body) => body,
-            None => return false,
-        }
-        .1;
-        let (func, app_body) = match body.into_app() {
-            Some(r) => r,
-            None => return false,
-        };
-        let ident = match app_body.into_ident() {
-            Some(r) => r,
-            None => return false,
-        };
-        if ident.1 != 1 {
-            return false;
-        }
-        if func
-            .reduce_by_var_with_depth(
-                |v, dep, prev| {
-                    if prev.is_some() || v.into_ident().unwrap().1 == 1 + dep {
-                        Some(())
-                    } else {
-                        None
-                    }
-                },
-                0,
-                None,
-            )
-            .is_some()
-        {
-            return false;
-        }
-        true
+        self.into_abs()
+            .and_then(|body| {
+                body.1.into_app().and_then(|(func, app_body)| {
+                    Some(
+                        app_body
+                            .into_ident()
+                            .and_then(|ident| Some(ident.1 == 1))
+                            .unwrap_or(false)
+                            && func.reduce_by_var_with_depth(
+                                |v, dep, prev| prev && v.into_ident().unwrap().1 != 1 + dep,
+                                0,
+                                true,
+                            ),
+                    )
+                })
+            })
+            .unwrap_or(false)
     }
     /// Eta reduce requires the function's extensionality axiom,
     /// thus is not enabled by default.
