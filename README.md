@@ -6,6 +6,8 @@
 
 lamcalc implements untyped Lambda Calculus.
 
+Current status: stabalized v1.
+
 Inspired by [Lambda Calculus: Basic Interpreter in Rust (Part 2)](https://tejqunair.com/posts/lambda-part-2/).
 
 ## Quick View

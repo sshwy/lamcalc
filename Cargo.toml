@@ -10,7 +10,7 @@ license = "MIT"
 name = "lamcalc"
 readme = "README.md"
 repository = "https://github.com/sshwy/lamcalc"
-version = "0.4.5"
+version = "1.0.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -18,15 +18,15 @@ crate-type = ["cdylib", "rlib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pest = "2.5.6"
-pest_derive = "2.5.6"
+pest = "2"
+pest_derive = "2"
 serde = { version = "1.0", features = ["derive"] }
 serde-wasm-bindgen = { version = "0.4", optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
 
 [dependencies.web-sys]
 optional = true
-version = "0.3.4"
+version = "0.3"
 features = [ "console" ]
 
 [features]
