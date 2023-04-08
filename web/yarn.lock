@@ -1335,9 +1335,9 @@ __metadata:
   linkType: hard
 
 "lamcalc@file:../pkg::locator=web%40workspace%3A.":
-  version: 0.4.5
-  resolution: "lamcalc@file:../pkg#../pkg::hash=67fa2f&locator=web%40workspace%3A."
-  checksum: e3de4b6c6f3db177ebe95def7191171e3c40fc84d593e5f23f96d5682bd411a4ef9927a4eda071f412a35bc8ad898498af18c57f3e9ccb35e9cf07f6fb703b8e
+  version: 1.0.0
+  resolution: "lamcalc@file:../pkg#../pkg::hash=ae8197&locator=web%40workspace%3A."
+  checksum: 7f786158860ba02eea38592d0665d02ae5e7931aba84a965732d551f04eef6276b343a2cd05a18f1a65d9a2b6ac9d138a4ae257b025365ab22a475b175d33b01
   languageName: node
   linkType: hard
 
@@ -1993,9 +1993,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitepress@npm:^1.0.0-alpha.61":
-  version: 1.0.0-alpha.61
-  resolution: "vitepress@npm:1.0.0-alpha.61"
+"vitepress@npm:^1.0.0-alpha.65":
+  version: 1.0.0-alpha.65
+  resolution: "vitepress@npm:1.0.0-alpha.65"
   dependencies:
     "@docsearch/css": ^3.3.3
     "@docsearch/js": ^3.3.3
@@ -2008,7 +2008,7 @@ __metadata:
     vue: ^3.2.47
   bin:
     vitepress: bin/vitepress.js
-  checksum: 240c2f90b8d83e8c54565c690f0996e1619c0e5caabc69bb7f4a182b11671d683d83f15c8183c6b55aa87f9066f9be8e47d9c8eb6ac720dbbd17059dad8c14c8
+  checksum: 822829bbc1999d5d409e2d59b8c1f10b41422954d67a6116316cd4b758f3355631164216dd0b26a421e198548a33a701d46ac164c044091e01d2e06665c892af
   languageName: node
   linkType: hard
 
@@ -2068,7 +2068,7 @@ __metadata:
     markdown-it-footnote: ^3.0.3
     vite-plugin-top-level-await: ^1.3.0
     vite-plugin-wasm: ^3.2.2
-    vitepress: ^1.0.0-alpha.61
+    vitepress: ^1.0.0-alpha.65
   languageName: unknown
   linkType: soft
 
