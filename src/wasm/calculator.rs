@@ -106,7 +106,7 @@ pub struct Calculator {
     defs: HashMap<String, Exp<String>>,
 }
 
-/// 实现 lambda 表达式的分布计算、化简
+/// A calculator for lambda expression, supporting evaluation and simplification step by step.
 #[wasm_bindgen]
 impl Calculator {
     /// New instance

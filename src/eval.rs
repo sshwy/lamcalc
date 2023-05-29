@@ -10,6 +10,7 @@ pub struct ProfileData {
     pub eta_reduce_counter: u64,
     pub eval_fn_counter: u64,
 }
+
 #[cfg(feature = "experimental")]
 impl ProfileData {
     fn reset_counter(&mut self) {

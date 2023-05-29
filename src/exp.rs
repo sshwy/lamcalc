@@ -20,11 +20,11 @@ pub struct Ident<T: Clone + Eq>(pub T, pub u32);
 /// use [`lambda`](crate::lambda) macro to create lambda expression efficiently.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Exp<T: Clone + Eq> {
-    /// 一个变量
+    /// Variable identifier
     Var(Ident<T>),
-    /// 一个函数的定义 (abstraction)
+    /// Abstraction
     Abs(Ident<T>, Box<Exp<T>>),
-    /// 函数的应用 (application)
+    /// Application
     App(Box<Exp<T>>, Box<Exp<T>>),
 }
 
@@ -71,10 +71,13 @@ impl<T: Clone + Eq> Exp<T> {
         });
         self
     }
-    /// 进行标识符的替换
-    /// 在不允许表达式中出现自由变量的情况下（遇到了就忽略），被替换的变量
-    /// 的 de_bruijn_index 总是 >0，并且我们总是将某个 abstraction 的参数
-    /// 进行替换。因此只用记 de_bruijn_index 即可。
+    /// Replace the identifier with corresponding De Bruijn index by an expression.
+    ///
+    /// Variables in `exp` that are not captured are properly maintained.
+    ///
+    // 在不允许表达式中出现自由变量的情况下（遇到了就忽略），被替换的变量
+    // 的 de_bruijn_index 总是 >0，并且我们总是将某个 abstraction 的参数
+    // 进行替换。因此只用记 de_bruijn_index 即可。
     fn subst_de(&mut self, de_index: u32, exp: &Exp<T>) -> &mut Self {
         self.for_each_var(|v, dep| {
             if let Exp::Var(ident) = &v {
@@ -87,11 +90,9 @@ impl<T: Clone + Eq> Exp<T> {
         });
         self
     }
-    /// alter the de bruijn index of outer captured variable
-    /// by a uniform shift.
-    ///
-    /// 将当前表达式进行抽象，或者放入某个抽象的子表达式，
-    /// 这会导致被外部捕获的变量 的 de bruijn index + 1
+    /// Alter the de bruijn index of outer captured variable
+    /// by a shift. It's often used in applying an abstraction
+    /// to anthor abstraction.
     fn shift_outer_captured_var(&mut self, shift: isize) {
         self.for_each_var(|v, dep| {
             let ident = v.into_ident().unwrap();

@@ -25,7 +25,7 @@ impl<T: Clone + Eq> Exp<T> {
         self
     }
 }
-/// 创建一个函数应用的表达式（左结合）
+
 #[doc(hidden)]
 pub fn app<T>(exps: Vec<Exp<T>>) -> Exp<T>
 where
@@ -41,7 +41,6 @@ where
     res.unwrap()
 }
 
-/// 创建一个函数表达式，自动捕获 `exp` 中的同名变量（除了同名参数的 abs 内部）
 #[doc(hidden)]
 pub fn abs<T>(v: T, exp: Exp<T>) -> Exp<T>
 where
@@ -52,7 +51,6 @@ where
     Exp::Abs(Ident(v, 0), Box::new(exp))
 }
 
-/// 创建一个变量表达式
 #[doc(hidden)]
 pub fn unbounded_var<T>(v: T) -> Exp<T>
 where
@@ -61,15 +59,16 @@ where
     Exp::Var(Ident(v, 0))
 }
 
-// The keyword metavariable $crate can be used to refer to the current crate;
 /// Build lambda expression with [`String`] identifier conveniently.
 /// Generally:
-/// 
+///
 /// 1. Dot `.` can be used to define abstraction.
 /// 2. Parentheses can be used to denote subexpression.
 /// 3. Application is left associated by default.
 /// 
-/// Checkout examples in home page.
+/// If you find an expression not parsed, try adding parentheses to subexpressions.
+///
+/// For examples please checkout the home page.
 #[macro_export]
 macro_rules! lambda {
     // 消掉外层括号
@@ -81,6 +80,7 @@ macro_rules! lambda {
         $v.clone()
     };
     // variable
+    // The keyword metavariable $crate can be used to refer to the current crate;
     [$v:ident] => {
         $crate::builder::unbounded_var::<String>(String::from(stringify!($v)))
     };
@@ -95,18 +95,25 @@ macro_rules! lambda {
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use crate::builder::{abs, app, unbounded_var};
 
     #[test]
     fn test_builder() {
         let and = lambda!(x. (y. x y x));
-        assert_eq!(and, abs(String::from("x"), abs(String::from("y"), app(
-            vec![
-                unbounded_var(String::from("x")),
-                unbounded_var(String::from("y")),
-                unbounded_var(String::from("x")),
-            ]
-        ))));
+        assert_eq!(
+            and,
+            abs(
+                String::from("x"),
+                abs(
+                    String::from("y"),
+                    app(vec![
+                        unbounded_var(String::from("x")),
+                        unbounded_var(String::from("y")),
+                        unbounded_var(String::from("x")),
+                    ])
+                )
+            )
+        );
     }
 }

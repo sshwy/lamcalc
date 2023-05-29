@@ -4,11 +4,16 @@
 [![Crates.io](https://img.shields.io/crates/v/lamcalc)](https://crates.io/crates/lamcalc)
 [![tutorial](https://img.shields.io/badge/tutorial-Github_Pages-green)](https://sshwy.github.io/lamcalc/)
 
-lamcalc implements untyped Lambda Calculus.
+LamCalc implements untyped Lambda Calculus, Inspired by [Lambda Calculus: Basic Interpreter in Rust (Part 2)](https://tejqunair.com/posts/lambda-part-2/).
 
 Current status: stabalized v1.
 
-Inspired by [Lambda Calculus: Basic Interpreter in Rust (Part 2)](https://tejqunair.com/posts/lambda-part-2/).
+## Features
+
+- `lambda!` macro for convenient definition.
+- Implemented using De Bruijn index.
+- Parser for expressions/definitions/files.
+- WASM package for web application.
 
 ## Quick View
 

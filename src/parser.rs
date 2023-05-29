@@ -1,9 +1,9 @@
 #![allow(missing_docs)]
 //! Parse Lambda expressions in text. Support CJK characters.
 //!
-//! The parsing expression grammar (PEG) of Lambda expression 
+//! The parsing expression grammar (PEG) of Lambda expression
 //! definitions is defined as (`~` for concatenation, `*` for zero or more,
-//! `+` for one or more, 
+//! `+` for one or more,
 //! `?` for one or none, and `|` for selection):
 //!
 //! ```pest
@@ -21,27 +21,27 @@ use std::collections::HashMap;
 #[grammar = "./grammar.pest"]
 pub struct LambdaParser;
 
-/// 原始代码的 token
+/// Token of lambda expression
 #[derive(Debug, Serialize)]
 #[serde(tag = "kind", content = "data")]
 pub enum Token {
-    /// 一个 . 字符
+    /// Dot symbol `.`
     DotSym,
-    /// '('
+    /// Left parenthesis `(`
     LPar,
-    /// ')'
+    /// Right parenthesis `)`
     RPar,
-    /// '='
+    /// Equal symbol `=`
     Eq,
-    /// 换行
+    /// Line feed `\n`
     LineFeed,
-    /// 一个 lambda 符号
+    /// Lambda symbol `\`
     LamSym(String),
-    /// 空白字符串，不含换行
+    /// String consists of blank characters
     Blank(String),
-    /// identifier
+    /// Variable identifier
     Ident(String),
-    /// 注释
+    /// Comment
     Comment(String),
 }
 
@@ -74,7 +74,7 @@ fn build_lambda(tt: Pair<Rule>) -> Result<(Exp<String>, Vec<Token>), Error> {
                 tks.push(Token::DotSym);
                 cur = it.next().unwrap()
             } else {
-                return Err(Error::InvalidRule(cur.to_string()));
+                panic!("invalid parsing rule: {}", cur)
             }
             if let Rule::blank = cur.as_rule() {
                 tks.push(Token::Blank(cur.as_span().as_str().to_string()));
@@ -85,7 +85,7 @@ fn build_lambda(tt: Pair<Rule>) -> Result<(Exp<String>, Vec<Token>), Error> {
                 tks.append(&mut body_tks);
                 Ok((builder::abs(ident, body_exp), tks))
             } else {
-                Err(Error::InvalidRule(cur.to_string()))
+                panic!("invalid parsing rule: {}", cur)
             }
         }
         Rule::app => {
@@ -101,7 +101,7 @@ fn build_lambda(tt: Pair<Rule>) -> Result<(Exp<String>, Vec<Token>), Error> {
                 } else if let Rule::blank = cur.as_rule() {
                     tks.push(Token::Blank(cur.as_span().as_str().to_string()));
                 } else {
-                    return Err(Error::InvalidRule(cur.to_string()));
+                    panic!("invalid parsing rule: {}", cur)
                 }
                 cur = match it.next() {
                     Some(nex) => nex,
@@ -139,11 +139,10 @@ fn build_lambda(tt: Pair<Rule>) -> Result<(Exp<String>, Vec<Token>), Error> {
             Ok((exp, tks))
         }
 
-        _ => Err(Error::InvalidRule(tt.to_string())),
+        _ => panic!("invalid parsing rule: {}", tt),
     }
 }
 
-/// 只接受 def 规则的表达式
 fn build_def(tt: Pair<Rule>) -> Result<(String, Exp<String>, Vec<Token>), Error> {
     if let Rule::def = tt.as_rule() {
         let mut it = tt.into_inner();
@@ -160,7 +159,7 @@ fn build_def(tt: Pair<Rule>) -> Result<(String, Exp<String>, Vec<Token>), Error>
             tks.push(Token::Eq);
             cur = it.next().unwrap();
         } else {
-            return Err(Error::InvalidRule(cur.to_string()));
+            panic!("invalid parsing rule: {}", cur)
         }
         if let Rule::blank = cur.as_rule() {
             tks.push(Token::Blank(cur.as_span().as_str().to_string()));
@@ -171,12 +170,14 @@ fn build_def(tt: Pair<Rule>) -> Result<(String, Exp<String>, Vec<Token>), Error>
             tks.append(&mut exp_tks);
             return Ok((ident, exp, tks));
         }
-        return Err(Error::InvalidRule(cur.to_string()));
+        panic!("invalid parsing rule: {}", cur)
     }
-    Err(Error::InvalidRule(tt.to_string()))
+    panic!("invalid parsing rule: {}", tt)
 }
 
-/// 解析一个 lambda 表达式，返回其词组
+/// Parse a lambda expression. e. g. `\f. (\x. f (x x)) \x. f (x x)`.
+///
+/// Return its expression object and token list.
 pub fn parse_exp(lambda: &str) -> Result<(Exp<String>, Vec<Token>), Error> {
     let exp = LambdaParser::parse(Rule::exp, lambda)
         .map_err(|e| Error::ParseError(e.to_string()))?
@@ -185,7 +186,9 @@ pub fn parse_exp(lambda: &str) -> Result<(Exp<String>, Vec<Token>), Error> {
     build_lambda(exp)
 }
 
-/// 解析单行 lambda 表达式的定义，返回其标识符（变量名）和词组
+/// Parse a single line of definition of lambda exp. e. g. `Y = \f. (\x. f (x x)) \x. f (x x)`.
+///
+/// Return its idetifier, expression object and token list.
 pub fn parse_def(lambda: &str) -> Result<(String, Exp<String>, Vec<Token>), Error> {
     let def = LambdaParser::parse(Rule::def, lambda)
         .map_err(|e| Error::ParseError(e.to_string()))?
@@ -194,7 +197,27 @@ pub fn parse_def(lambda: &str) -> Result<(String, Exp<String>, Vec<Token>), Erro
     build_def(def)
 }
 
-/// 解析多行定义，返回一个 map 表示标识符与表达式的对应关系（后面的会覆盖前面的），以及全文的词组
+/// Parse multiple definitions of lambda expression one by a line.
+///
+/// e. g.
+///
+/// ```plain
+/// Y = \f. (\x. f (x x)) \x. f (x x)
+/// I = \z. z
+/// T = \x. \y. x
+/// F = \x. \y. y
+/// O = \f. \x. x
+/// S = \n. \f. \x. f (n f x)
+/// One = \f. \x. f x
+/// Two = \f. \x. f (f x)
+/// Plus = \n. \m. \f. \x. n f (m f x)
+/// Mul = \n. \m. \f. \x. n (m f) x
+/// Exp = \n. \m. n (Mul m) One
+/// ```
+///
+/// Return a map from idetifier to expression object, and the whole content's token list.
+///
+/// For multiple definitions of the same variable, the last one will be adopted.
 pub fn parse_file(lambda: &str) -> Result<(HashMap<String, Exp<String>>, Vec<Token>), Error> {
     let lines = LambdaParser::parse(Rule::file, lambda)
         .map_err(|e| Error::ParseError(e.to_string()))?
@@ -243,11 +266,11 @@ pub fn parse_file(lambda: &str) -> Result<(HashMap<String, Exp<String>>, Vec<Tok
                 tks.push(Token::Comment(cur.as_span().as_str().to_string()));
                 continue;
             }
-            return Err(Error::InvalidRule(cur.to_string()));
+            panic!("invalid parsing rule: {}", cur)
         } else if let Rule::newline = rule.as_rule() {
             tks.push(Token::LineFeed);
         } else {
-            return Err(Error::InvalidRule(rule.to_string()));
+            panic!("invalid parsing rule: {}", rule)
         }
     }
 
@@ -330,7 +353,10 @@ mod tests {
 
         let (mut exp, tks) = parse_exp(s)?;
         assert_eq!(tks_str(&tks), s);
-        assert_eq!(exp.to_string(), "((λx. λy. ((((((x 即) 是) y) y) 即) 是) x) 色) 空");
+        assert_eq!(
+            exp.to_string(),
+            "((λx. λy. ((((((x 即) 是) y) y) 即) 是) x) 色) 空"
+        );
         eprintln!("{:#}", exp);
         exp.eval_normal_order(false);
         eprintln!("{:#}", exp);

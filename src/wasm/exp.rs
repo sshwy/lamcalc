@@ -199,25 +199,6 @@ impl JsExp {
 }
 
 impl Exp<String> {
-    // fn walk_reduce<F, D>(&mut self, jsexp: &JsExp, f: F, init: D) -> D
-    // where
-    //     F: Fn(&mut Self, &JsExp, D) -> D + Clone,
-    // {
-    //     let data = f(self, jsexp, init);
-    //     match self {
-    //         Exp::Var(_) => data,
-    //         Exp::Abs(_, body) => {
-    //             let abs = jsexp.into_abs_ref().unwrap();
-    //             body.walk_reduce(&abs.body, f, data)
-    //         }
-    //         Exp::App(func, body) => {
-    //             let app = jsexp.into_app_ref().unwrap();
-    //             let data = func.walk_reduce(&app.func, f.clone(), data);
-    //             body.walk_reduce(&app.body, f, data)
-    //         }
-    //     }
-    // }
-
     /// Resolve beta-redex based on it's `display_exp`
     ///
     /// this operation requires mutable reference of `display_exp`
