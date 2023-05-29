@@ -6,6 +6,6 @@ O = \f. \x. x
 S = \n. \f. \x. f (n f x)
 One = \f. \x. f x
 Two = \f. \x. f (f x)
-PLUS = \n. \m. \f. \x. n f (m f x)
+Plus = \n. \m. \f. \x. n f (m f x)
 Mul = \n. \m. \f. \x. n (m f) x
 Exp = \n. \m. n (Mul m) One
