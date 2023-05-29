@@ -7,7 +7,7 @@ fn main() -> Result<(), Error> {
     let zero = lambda!(f. (x. x));
     let suc = lambda!(n. f. x. f (n f x));
     let prev = lambda!(n. f. x. n (g. h. h (g f)) (u. x) (u. u));
-    let mut nats = vec![zero.clone()];
+    let mut nats = vec![zero];
     for i in 1..10 {
         let sx = lambda!({suc} {nats[i - 1]}).simplify()?.to_owned();
         nats.push(sx);
@@ -42,7 +42,7 @@ fn main() -> Result<(), Error> {
     let y_fact = lambda!({y} {fact});
 
     let res = lambda!({y_fact} {nats[3]}).purify().simplify()?.to_owned();
-    eprintln!("{}", res.to_string());
+    eprintln!("{}", res);
     assert_eq!(res, nats[6].purify());
 
     // if you try to simplify Y combinator ...

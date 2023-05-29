@@ -56,9 +56,12 @@ impl<T: Clone + Eq> Exp<T> {
     /// containing this variable.
     pub fn for_each_var<F>(&mut self, f: F)
     where
-        F: Fn(&mut Exp<T>, u32) -> () + Clone,
+        F: Fn(&mut Exp<T>, u32) + Clone,
     {
-        self.reduce_by_var_with_depth(|v, dep, _| Some(f(v, dep)), 0, None);
+        self.reduce_by_var_with_depth(|v, dep, _| {
+            f(v, dep);
+            Some(())
+        }, 0, None);
     }
     /// Substitute free variables (de bruijn index = 0) with expression
     pub fn subst_unbounded(&mut self, name: &T, exp: &Exp<T>) -> &mut Self {
@@ -98,9 +101,9 @@ impl<T: Clone + Eq> Exp<T> {
             let ident = v.into_ident().unwrap();
             if ident.1 > dep {
                 if shift > 0 {
-                    ident.1 = ident.1 + shift as u32
+                    ident.1 += shift as u32
                 } else {
-                    ident.1 = ident.1 - (-shift) as u32
+                    ident.1 -= (-shift) as u32
                 }
             }
         });
@@ -130,19 +133,14 @@ impl<T: Clone + Eq> Exp<T> {
     pub fn is_eta_redex(&mut self) -> bool {
         self.into_abs()
             .and_then(|body| {
-                body.1.into_app().and_then(|(func, app_body)| {
-                    Some(
-                        app_body
-                            .into_ident()
-                            .and_then(|ident| Some(ident.1 == 1))
+                body.1.into_app().map(|(func, app_body)| app_body
+                            .into_ident().map(|ident| ident.1 == 1)
                             .unwrap_or(false)
                             && func.reduce_by_var_with_depth(
                                 |v, dep, prev| prev && v.into_ident().unwrap().1 != 1 + dep,
                                 0,
                                 true,
-                            ),
-                    )
-                })
+                            ))
             })
             .unwrap_or(false)
     }
@@ -195,13 +193,13 @@ impl std::fmt::Display for Exp<String> {
         match self {
             Exp::Var(ident) => {
                 if f.alternate() {
-                    write!(f, "{}<{}>", ident.0.to_string(), ident.1)
+                    write!(f, "{}<{}>", ident.0, ident.1)
                 } else {
                     f.write_str(&ident.0.to_string())
                 }
             }
             Exp::Abs(ident, exp) => {
-                write!(f, "λ{}. ", ident.0.to_string())?;
+                write!(f, "λ{}. ", ident.0)?;
 
                 if f.alternate() {
                     write!(f, "{:#}", exp)
@@ -262,7 +260,7 @@ mod tests {
         let tt = lambda!(x. (y. x));
         let and = lambda!(x. y. x y x);
 
-        let mut e = and.clone();
+        let mut e = and;
         e.subst_de(0, &tt);
         assert_eq!(
             format!("{:#}", e),
@@ -273,7 +271,7 @@ mod tests {
         {
             let x = exp.into_abs().unwrap().1.into_abs().unwrap().1;
             if let Exp::App(func, body) = x {
-                func.subst_de(0, &body);
+                func.subst_de(0, body);
                 func.shift_outer_captured_var(-1);
                 // func.lift(1);
                 *x = func.into_abs().unwrap().1.to_owned();

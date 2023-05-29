@@ -119,7 +119,7 @@ mod tests {
         let mut plus = lambda!(n. m. n {suc} m);
         plus.simplify()?;
 
-        let mut nats = vec![zero.clone()];
+        let mut nats = vec![zero];
         for i in 1..10 {
             let x = nats.last().unwrap();
             let mut sx = lambda!({suc} {x});
