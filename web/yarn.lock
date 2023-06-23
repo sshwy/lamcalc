@@ -2069,9 +2069,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitepress@npm:^1.0.0-beta.2":
-  version: 1.0.0-beta.2
-  resolution: "vitepress@npm:1.0.0-beta.2"
+"vitepress@npm:^1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "vitepress@npm:1.0.0-beta.3"
   dependencies:
     "@docsearch/css": ^3.5.0
     "@docsearch/js": ^3.5.0
@@ -2088,7 +2088,7 @@ __metadata:
     vue: ^3.3.4
   bin:
     vitepress: bin/vitepress.js
-  checksum: 0259402b71707ca4e42c4b1d19d9710cdafcaab55768fa5091d82e9eaf6db03355afb986378da210e4f4eb1999391e3d1242f01e9375f6f64d0b2b08d09f00a3
+  checksum: 996f22c5bc5ee0e7ca0335a61f300c84ab44af8120a107563305ce75b60db0e7da7c34006eb9c3ee0aaf5665fb6a43077c7325f79d73a449c32b850afca0a8c8
   languageName: node
   linkType: hard
 
@@ -2164,7 +2164,7 @@ __metadata:
     markdown-it-footnote: ^3.0.3
     vite-plugin-top-level-await: ^1.3.0
     vite-plugin-wasm: ^3.2.2
-    vitepress: ^1.0.0-beta.2
+    vitepress: ^1.0.0-beta.3
   languageName: unknown
   linkType: soft
 
