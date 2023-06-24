@@ -1,51 +1,50 @@
 //! Lambda expression definition with comments starting with //
 
-/// 匹配空白字符
+/// match blank characters
 blank = @{ " "+ }
 
-/// 不会被忽略的换行
+/// match line feed
 newline = { NEWLINE }
 
 CJK = { HAN | HIRAGANA | KATAKANA | HANGUL | BOPOMOFO }
 
-/// 标识符，以字母或下划线开头，后面可以跟数字、字母或下划线
+/// match an identifier (starting with letters or underscore, followed by numbers, letters or underscore)
 ident = @{ (ASCII_ALPHA | CJK | "_") ~ (ASCII_ALPHANUMERIC | CJK | "_")* }
 
-/// lambda 表达式
+/// lambda expression
 exp = { app | bounded_exp | abs }
 
-/// 有边界的表达式
+/// lambda expression with parentheses
 bounded_exp = { ident | "(" ~ blank? ~ (abs | app) ~ blank? ~ ")" }
 
-/// application 参数列表中最后的那个表达式
-/// 注意 abs 实际上是贪婪匹配，因此只能放在最后
+/// the last expression in application chain
 tail_exp = { bounded_exp | abs }
 
-/// lambda 的点 '.'
+/// '.'
 dot = { "." }
 
 /// lambda symbol
 lamsym = { "\\" }
 
-/// 函数定义表达式
+/// abstraction
 abs = { lamsym ~ ident ~ blank? ~ dot ~ blank? ~ exp }
 
-/// 函数应用表达式
+/// application 
 app = {
     bounded_exp ~ (blank ~ tail_exp)+
 }
 
-/// "="
+/// '='
 eq = { "=" }
 
-/// lambda 表达式的定义，格式为 ident = exp
+/// lambda expression alias (format: ident = exp)
 def = { ident ~ blank? ~ eq ~ blank? ~ exp }
 
-/// 注释（同 C++ 的 //）
+/// comment starter
 com = @{ "//" ~ (!NEWLINE ~ ANY)* }
 
-/// 多行文件下一行的文法
+/// single line statement
 line = { blank? ~ (def ~ blank?)? ~ com? }
 
-/// 多行定义
+/// multiline statement 
 file = { SOI ~ (line ~ newline)* ~ line ~ EOI }

@@ -16,7 +16,7 @@ use pest_derive::Parser;
 use serde::Serialize;
 use std::collections::HashMap;
 
-/// 使用 [pest](https://pest.rs/) 构建的 lambda 表达式解析器
+/// lambda expression parser using [pest](https://pest.rs/)
 #[derive(Parser)]
 #[grammar = "./grammar.pest"]
 pub struct LambdaParser;
