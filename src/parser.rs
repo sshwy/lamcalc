@@ -10,10 +10,10 @@
 #![doc = include_str!("./grammar.pest")]
 //! ```
 //!
+
 use crate::{builder, Error, Exp};
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
-use serde::Serialize;
 use std::collections::HashMap;
 
 /// lambda expression parser using [pest](https://pest.rs/)
@@ -22,8 +22,9 @@ use std::collections::HashMap;
 pub struct LambdaParser;
 
 /// Token of lambda expression
-#[derive(Debug, Serialize)]
-#[serde(tag = "kind", content = "data")]
+#[derive(Debug)]
+#[cfg_attr(feature = "wasm", derive(serde::Serialize))]
+#[cfg_attr(feature = "wasm", serde(tag = "kind", content = "data"))]
 pub enum Token {
     /// Dot symbol `.`
     DotSym,

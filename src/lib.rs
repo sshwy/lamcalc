@@ -19,11 +19,12 @@
 #![doc = include_str!("../examples/y_combinator.rs")]
 //! ```
 
-#[doc(hidden)]
-pub mod builder;
 mod error;
 mod eval;
 mod exp;
+
+#[doc(hidden)]
+pub mod builder;
 pub mod parser;
 #[cfg(feature = "wasm")]
 pub mod wasm;

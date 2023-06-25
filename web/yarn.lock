@@ -1426,8 +1426,8 @@ __metadata:
 
 "lamcalc@file:../pkg::locator=web%40workspace%3A.":
   version: 1.1.0
-  resolution: "lamcalc@file:../pkg#../pkg::hash=029018&locator=web%40workspace%3A."
-  checksum: 16d28532423082842287025fa460fca326d6ee3c73adca064c627e89ac02621a30071125e8ff016f10c304f62650a4bfae3135e94fa7524c68456e548a70cdca
+  resolution: "lamcalc@file:../pkg#../pkg::hash=6ec036&locator=web%40workspace%3A."
+  checksum: aff869419cec0b3cac60efbce9aeedff0afee347f8f927f926c881184d069a277a19260d9e1d4e2e0dcdfe6cdd5c36b55a99c0d9eff0a87dc82438b3dd6431ff
   languageName: node
   linkType: hard
 

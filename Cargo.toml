@@ -20,17 +20,14 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 pest = "2"
 pest_derive = "2"
-serde = { version = "1.0", features = ["derive"] }
+
+serde = { version = "1.0", features = ["derive"], optional = true }
 serde-wasm-bindgen = { version = "0.4", optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
-
-[dependencies.web-sys]
-optional = true
-version = "0.3"
-features = [ "console" ]
+web-sys = { optional = true, version = "0.3", features = [ "console" ] }
 
 [features]
-wasm = ["dep:serde-wasm-bindgen", "dep:wasm-bindgen", "dep:web-sys"]
+wasm = ["serde", "serde-wasm-bindgen", "wasm-bindgen", "web-sys"]
 experimental = []
 
 [package.metadata.docs.rs]
