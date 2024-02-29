@@ -54,15 +54,15 @@ mod tests {
     }
     #[test]
     fn test_clone() {
-        let mut tt = lambda!(x.y.x).purify();
+        let tt = lambda!(x.y.x).purify();
         let mut ff = tt.clone();
-        ff.into_abs()
+        ff.into_abs_mut()
             .unwrap()
             .1
-            .into_abs()
+            .into_abs_mut()
             .unwrap()
             .1
-            .into_ident()
+            .into_ident_mut()
             .unwrap()
             .1 = 1;
         assert_eq!(

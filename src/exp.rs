@@ -102,7 +102,7 @@ impl<T: Clone + Eq> Exp<T> {
     /// to anthor abstraction.
     fn shift_outer_captured_var(&mut self, shift: isize) {
         self.for_each_var(|v, dep| {
-            let ident = v.into_ident().unwrap();
+            let ident = v.into_ident_mut().unwrap();
             if ident.1 > dep {
                 if shift > 0 {
                     ident.1 += shift as u32
@@ -143,11 +143,11 @@ impl<T: Clone + Eq> Exp<T> {
     }
     /// Check whether current expression is a eta reduction.
     pub fn is_eta_redex(&mut self) -> bool {
-        self.into_abs()
+        self.into_abs_mut()
             .and_then(|body| {
-                body.1.into_app().map(|(func, app_body)| {
+                body.1.into_app_mut().map(|(func, app_body)| {
                     app_body
-                        .into_ident()
+                        .into_ident_mut()
                         .map(|ident| ident.1 == 1)
                         .unwrap_or(false)
                         && func.reduce_by_var_with_depth(
@@ -173,8 +173,8 @@ impl<T: Clone + Eq> Exp<T> {
         if !self.is_eta_redex() {
             return false;
         }
-        let (_, body) = self.into_abs().unwrap();
-        let (func, _) = body.into_app().unwrap();
+        let (_, body) = self.into_abs_mut().unwrap();
+        let (func, _) = body.into_app_mut().unwrap();
         func.shift_outer_captured_var(-1); // func.lift(1);
         *self = func.to_owned();
         true
@@ -198,21 +198,42 @@ impl<T: Clone + Eq> Exp<T> {
         }
     }
     /// return func and body for App.
-    pub fn into_app(&mut self) -> Option<(&mut Self, &mut Self)> {
+    pub fn into_app(&self) -> Option<(&Self, &Self)> {
+        match self {
+            Exp::App(func, body) => Some((&**func, &**body)),
+            _ => None,
+        }
+    }
+    /// return body for Abs.
+    pub fn into_abs(&self) -> Option<(&Ident<T>, &Self)> {
+        match self {
+            Exp::Abs(ident, body) => Some((ident, &**body)),
+            _ => None,
+        }
+    }
+    /// return identifer for Var.
+    pub fn into_ident(&self) -> Option<&Ident<T>> {
+        match self {
+            Exp::Var(ident) => Some(ident),
+            _ => None,
+        }
+    }
+    /// return func and body for App.
+    pub fn into_app_mut(&mut self) -> Option<(&mut Self, &mut Self)> {
         match self {
             Exp::App(func, body) => Some((&mut **func, &mut **body)),
             _ => None,
         }
     }
     /// return body for Abs.
-    pub fn into_abs(&mut self) -> Option<(&mut Ident<T>, &mut Self)> {
+    pub fn into_abs_mut(&mut self) -> Option<(&mut Ident<T>, &mut Self)> {
         match self {
             Exp::Abs(ident, body) => Some((ident, &mut **body)),
             _ => None,
         }
     }
     /// return identifer for Var.
-    pub fn into_ident(&mut self) -> Option<&mut Ident<T>> {
+    pub fn into_ident_mut(&mut self) -> Option<&mut Ident<T>> {
         match self {
             Exp::Var(ident) => Some(ident),
             _ => None,
@@ -301,7 +322,7 @@ mod tests {
 
         let mut exp = lambda!(z. x. (y. x y) z);
         {
-            let x = exp.into_abs().unwrap().1.into_abs().unwrap().1;
+            let x = exp.into_abs_mut().unwrap().1.into_abs_mut().unwrap().1;
             if let Exp::App(func, body) = x {
                 func.subst_de(0, body);
                 func.shift_outer_captured_var(-1);
@@ -314,7 +335,7 @@ mod tests {
     #[test]
     fn test_eta_reduce() {
         let mut exp = lambda!(x. y. f x y);
-        assert!(exp.into_abs().unwrap().1.eta_reduce());
+        assert!(exp.into_abs_mut().unwrap().1.eta_reduce());
         assert!(exp.eta_reduce());
         assert_eq!(exp, lambda!(f));
         let mut exp2 = lambda!(x. x x);
