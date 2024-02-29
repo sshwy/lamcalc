@@ -2,7 +2,7 @@
 import Ident from './Ident.vue';
 import AbsHead from './AbsHead.vue';
 import { computed, inject, ref } from 'vue';
-import { useDebounceFn } from '@vueuse/shared';
+import { useDebounceFn } from '@vueuse/core';
 import { betaReduceKey, etaReduceKey, replaceNameKey } from '../LambdaInteractive.vue';
 import { decorKey } from './LambdaExp.vue';
 
