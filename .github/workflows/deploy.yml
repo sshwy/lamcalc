@@ -14,7 +14,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -28,26 +29,41 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Setup Node & Yarn
-        uses: actions/setup-node@v3
-        with:
-          node-version: 19
-          # cache: yarn
-          # cache-dependency-path: web/yarn.lock
-      - working-directory: ./web
-        run: |
-          corepack enable
-          corepack prepare yarn@stable --activate
-
       - name: Build WASM
         run: wasm-pack build --features wasm
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        working-directory: ./web
+        run: pnpm install
 
       - name: Build Docs
         working-directory: ./web
         run: |
-          rm -rf yarn.lock
-          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn
-          yarn docs:build-github-pages
+          pnpm docs:build-github-pages
 
       - uses: actions/configure-pages@v2
       - uses: actions/upload-pages-artifact@v1
