@@ -35,7 +35,7 @@ fn main() -> Result<(), Error> {
     let mut fact = lambda!(y. n. {if_n_is_zero} n (f. x. f x) ({mul} n (y ({prev} n))));
 
     eprintln!("simplify fact");
-    while fact.eval_normal_order(true) { 
+    while fact.eval_normal_order(true) {
         eprintln!("fact = {}", fact);
     }
 

@@ -1,4 +1,4 @@
-use lamcalc::{parser, Error, lambda};
+use lamcalc::{lambda, parser, Error};
 
 fn main() -> Result<(), Error> {
     // parse single expression
@@ -11,13 +11,15 @@ fn main() -> Result<(), Error> {
     println!("ff = {}", ff);
 
     // parse multiple definitions
-    let (map, _) = parser::parse_file(r##"
+    let (map, _) = parser::parse_file(
+        r##"
         // and
         and = \x. \y. x y x
 
         // or
         or = \x. \y. x x y
-    "##)?;
+    "##,
+    )?;
 
     let and_t_f = lambda!({map["and"]} {tt} {ff}).simplify()?.to_owned();
     assert_eq!(and_t_f, ff);

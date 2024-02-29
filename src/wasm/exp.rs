@@ -109,13 +109,7 @@ impl JsExp {
         }
     }
     /// 初始化后添加括号，添加 alpha-equivalence setoid id
-    fn decorate(
-        &mut self,
-        is_app_func: bool,
-        is_app_body: bool,
-        is_tail: bool,
-        counter: &mut u32,
-    ) {
+    fn decorate(&mut self, is_app_func: bool, is_app_body: bool, is_tail: bool, counter: &mut u32) {
         match &mut self.inner {
             InnerExp::Var(var) => {
                 // free variable
@@ -205,11 +199,7 @@ impl Exp<String> {
     /// to mark the modified part.
     ///
     /// return the alpha_id of reduced part.
-    pub(crate) fn beta_reduce_by_id(
-        &mut self,
-        display_exp: &JsExp,
-        id: u32,
-    ) -> Result<u32, Error> {
+    pub(crate) fn beta_reduce_by_id(&mut self, display_exp: &JsExp, id: u32) -> Result<u32, Error> {
         if let InnerExp::App(app) = &display_exp.inner {
             if let Some(beta_redex) = app.beta_redex {
                 let alpha_id = app.func.into_abs_ref()?.alpha_id;
@@ -235,11 +225,7 @@ impl Exp<String> {
         }
     }
     /// return the alpha_id of reduced part.
-    pub(crate) fn eta_reduce_by_id(
-        &mut self,
-        display_exp: &JsExp,
-        id: u32,
-    ) -> Result<u32, Error> {
+    pub(crate) fn eta_reduce_by_id(&mut self, display_exp: &JsExp, id: u32) -> Result<u32, Error> {
         if let Exp::Abs(_, _) = self {
             let abs = display_exp.into_abs_ref()?;
             if abs.eta_redex.is_some() && abs.eta_redex.unwrap() == id {

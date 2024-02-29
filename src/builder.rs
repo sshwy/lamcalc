@@ -65,7 +65,7 @@ where
 /// 1. Dot `.` can be used to define abstraction.
 /// 2. Parentheses can be used to denote subexpression.
 /// 3. Application is left associated by default.
-/// 
+///
 /// If you find an expression not parsed, try adding parentheses to subexpressions.
 ///
 /// For examples please checkout the home page.

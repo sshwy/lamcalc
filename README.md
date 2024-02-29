@@ -48,3 +48,17 @@ fn main () -> Result<(), Error> {
 ```
 
 See `examples/` for more.
+
+## Development
+
+You may add
+
+```json
+{
+    "rust-analyzer.cargo.features": [
+        "wasm"
+    ]
+}
+```
+
+to `.vscode/settings.json` for better Rust code analyzing.

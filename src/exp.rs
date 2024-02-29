@@ -58,10 +58,14 @@ impl<T: Clone + Eq> Exp<T> {
     where
         F: Fn(&mut Exp<T>, u32) + Clone,
     {
-        self.reduce_by_var_with_depth(|v, dep, _| {
-            f(v, dep);
-            Some(())
-        }, 0, None);
+        self.reduce_by_var_with_depth(
+            |v, dep, _| {
+                f(v, dep);
+                Some(())
+            },
+            0,
+            None,
+        );
     }
     /// Substitute free variables (de bruijn index = 0) with expression
     pub fn subst_unbounded(&mut self, name: &T, exp: &Exp<T>) -> &mut Self {
@@ -118,6 +122,14 @@ impl<T: Clone + Eq> Exp<T> {
         false
     }
     /// Try making beta reduction, return false if nothing changed.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use lamcalc::lambda;
+    /// let mut e = lambda!((x . y) x);
+    /// assert!(e.beta_reduce());
+    /// ```
     pub fn beta_reduce(&mut self) -> bool {
         if !self.is_beta_redex() {
             return false;
@@ -133,19 +145,30 @@ impl<T: Clone + Eq> Exp<T> {
     pub fn is_eta_redex(&mut self) -> bool {
         self.into_abs()
             .and_then(|body| {
-                body.1.into_app().map(|(func, app_body)| app_body
-                            .into_ident().map(|ident| ident.1 == 1)
-                            .unwrap_or(false)
-                            && func.reduce_by_var_with_depth(
-                                |v, dep, prev| prev && v.into_ident().unwrap().1 != 1 + dep,
-                                0,
-                                true,
-                            ))
+                body.1.into_app().map(|(func, app_body)| {
+                    app_body
+                        .into_ident()
+                        .map(|ident| ident.1 == 1)
+                        .unwrap_or(false)
+                        && func.reduce_by_var_with_depth(
+                            |v, dep, prev| prev && v.into_ident().unwrap().1 != 1 + dep,
+                            0,
+                            true,
+                        )
+                })
             })
             .unwrap_or(false)
     }
     /// Eta reduce requires the function's extensionality axiom,
     /// thus is not enabled by default.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use lamcalc::lambda;
+    /// let mut e = lambda!(x. y x);
+    /// assert!(e.eta_reduce());
+    /// ```
     pub fn eta_reduce(&mut self) -> bool {
         if !self.is_eta_redex() {
             return false;
@@ -158,6 +181,15 @@ impl<T: Clone + Eq> Exp<T> {
     }
     /// Remove name of indentifiers, keeping just de bruijn code.
     /// If there are free variables, they will become the same thing.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use lamcalc::lambda;
+    /// let mut e = lambda!(n. s. z. s (n s z));
+    /// assert_eq!(e.to_string(), "λn. λs. λz. s ((n s) z)");
+    /// assert_eq!(e.purify().to_string(), "λλλ[2]([[3](2)](1))");
+    /// ```
     pub fn purify(&self) -> Exp<()> {
         match self {
             Exp::Var(Ident(_, code)) => Exp::Var(Ident((), *code)),
