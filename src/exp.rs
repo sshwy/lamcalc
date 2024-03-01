@@ -241,6 +241,26 @@ impl<T: Clone + Eq> Exp<T> {
     }
 }
 
+impl<T> Exp<T>
+where
+    T: Clone + Eq + ToString,
+{
+    /// Transform arbitrary expression to string named expression
+    pub fn to_string_exp(&self) -> Exp<String> {
+        match self {
+            Exp::Var(Ident(name, code)) => Exp::Var(Ident(name.to_string(), *code)),
+            Exp::Abs(Ident(name, code), body) => Exp::Abs(
+                Ident(name.to_string(), *code),
+                Box::new(body.to_string_exp()),
+            ),
+            Exp::App(func, body) => Exp::App(
+                Box::new(func.to_string_exp()),
+                Box::new(body.to_string_exp()),
+            ),
+        }
+    }
+}
+
 impl std::fmt::Display for Exp<String> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -345,7 +365,7 @@ mod tests {
     fn test_subst_unbounded() -> Result<(), Error> {
         let mut exp = lambda!(x. y. f x y);
         exp.subst_unbounded(&String::from("f"), &lambda!(x. (y. z)));
-        exp.simplify()?;
+        exp.simplify(false)?;
         assert_eq!(exp, lambda!(x. (y. z)));
         Ok(())
     }

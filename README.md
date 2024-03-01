@@ -33,7 +33,7 @@ fn main () -> Result<(), Error> {
 
     // use braces to refer to previously defined lambda
     let mut and_f_t = lambda!({and} {ff} {tt}); 
-    and_f_t.simplify()?; // get simplified result
+    and_f_t.simplify(true)?; // get simplified result
     assert_eq!(and_f_t, ff);
 
     // parse lambda expression string

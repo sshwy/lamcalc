@@ -108,7 +108,7 @@ mod tests {
         let mut res = lambda!({and} {tt} {tt});
 
         println!("res = {}", res);
-        while res.eval_normal_order(false) {
+        while res.eval_normal_order(false, false) {
             println!("res = {}", res);
         }
         assert_eq!(res.to_string(), "λx. λy. x");
@@ -118,18 +118,18 @@ mod tests {
         let zero = lambda!(s. (z. z));
         let suc = lambda!(n. s. z. s (n s z));
         let mut plus = lambda!(n. m. n {suc} m);
-        plus.simplify()?;
+        plus.simplify(true)?;
 
         let mut nats = vec![zero];
         for i in 1..10 {
             let x = nats.last().unwrap();
             let mut sx = lambda!({suc} {x});
-            sx.simplify()?;
+            sx.simplify(true)?;
             eprintln!("{} = {}", i, sx.purify());
             nats.push(sx);
         }
         let mut test = lambda!({plus} {nats[4]} {nats[3]});
-        test.simplify()?;
+        test.simplify(true)?;
         println!("test = {:#}", test);
 
         assert_eq!(test.to_string(), nats[7].to_string());

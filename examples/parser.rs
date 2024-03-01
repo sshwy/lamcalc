@@ -21,10 +21,10 @@ fn main() -> Result<(), Error> {
     "##,
     )?;
 
-    let and_t_f = lambda!({map["and"]} {tt} {ff}).simplify()?.to_owned();
+    let and_t_f = lambda!({map["and"]} {tt} {ff}).simplify(true)?.to_owned();
     assert_eq!(and_t_f, ff);
 
-    let or_t_f = lambda!({map["or"]} {tt} {ff}).simplify()?.to_owned();
+    let or_t_f = lambda!({map["or"]} {tt} {ff}).simplify(true)?.to_owned();
     assert_eq!(or_t_f, tt);
 
     Ok(())
