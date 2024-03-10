@@ -5,7 +5,7 @@ import LambdaInteractive from './LambdaInteractive.vue';
 import { ref } from 'vue';
 import { useDebounceFn } from '@vueuse/core'
 
-const inputContent = ref('Y I')
+const inputContent = ref('Y Fact (\\f. \\x. f x)')
 const expStr = ref(inputContent.value)
 
 const initWithStr = useDebounceFn((s: string) => {

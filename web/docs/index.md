@@ -5,7 +5,7 @@ title: 首页
 hero:
   name: 'λ-Calculus: 道生万物'
   text: 函数抽象的演绎之理
-  tagline: 即使你并不懂计算机！
+  tagline: 现在看来这个标题属实有点中二了 >_<
   actions:
     - theme: brand
       text: 开始阅读
